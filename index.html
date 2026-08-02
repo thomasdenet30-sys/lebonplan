@@ -1,0 +1,1357 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>LEBONPLAN — Maquette premium</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,900;1,9..144,500&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   LEBONPLAN — SYSTÈME PREMIUM · émeraude monochrome + noir
+   Contraste éditorial (serif luxe) × énergie bon plan (néon)
+   ============================================================ */
+:root{
+  --bg:#02100a; --bg-2:#051710; --bg-3:#03120b;
+  --panel:rgba(8,30,19,.66); --panel-solid:#07200f;
+  --line:rgba(120,255,190,.12); --line-strong:rgba(0,255,150,.32);
+  --hair:rgba(230,255,244,.10);
+  --green:#00ff8c; --green-2:#6effc0; --green-deep:#00c96b; --emerald:#0a3d28;
+  --ink:#eafff4; --ink-2:#bfeeda; --muted:#77b79a;
+  --danger:#ff4d6a; --danger-glow:rgba(255,77,106,.5);
+  --radius:20px; --glow:0 0 26px rgba(0,255,140,.4); --glow-soft:0 0 70px rgba(0,255,140,.16);
+  --serif:'Fraunces',ui-serif,Georgia,'Times New Roman',serif;
+  --sans:'Manrope',"Segoe UI",system-ui,-apple-system,Roboto,Helvetica,Arial,sans-serif;
+  --side:264px; --rail:330px;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{margin:0;padding:0;height:100%;}
+body{font-family:var(--sans);color:var(--ink);overflow:hidden;position:fixed;inset:0;font-weight:500;
+  background:radial-gradient(1300px 900px at 50% -12%,#0b3320 0%,transparent 58%),
+             radial-gradient(1000px 900px at 92% 112%,#062a19 0%,transparent 55%),var(--bg);
+  -webkit-font-smoothing:antialiased;}
+.svg-ic{width:1em;height:1em;display:block;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;}
+
+/* ============ DÉCOR PREMIUM ============ */
+.ambient{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden;}
+.ambient .aurora{position:absolute;inset:-35%;filter:blur(90px);opacity:.55;animation:spin 46s linear infinite;
+  background:conic-gradient(from 0deg at 50% 50%,rgba(0,49,28,0),rgba(0,255,140,.16),rgba(0,49,28,0),rgba(0,201,107,.14),rgba(0,49,28,0));}
+@keyframes spin{to{transform:rotate(360deg)}}
+.ambient .grid{position:absolute;inset:-2px;
+  background-image:linear-gradient(rgba(0,255,140,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(0,255,140,.04) 1px,transparent 1px);
+  background-size:52px 52px;mask-image:radial-gradient(85% 75% at 50% 38%,#000,transparent 100%);animation:gridpan 22s linear infinite;}
+@keyframes gridpan{from{background-position:0 0,0 0}to{background-position:52px 104px,104px 52px}}
+.ambient .vignette{position:absolute;inset:0;background:radial-gradient(125% 100% at 50% 38%,transparent 52%,rgba(0,0,0,.6) 100%);}
+.ambient .grain{position:absolute;inset:0;opacity:.045;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");}
+
+/* root / screens */
+.root{position:relative;z-index:2;height:100%;width:100%;overflow:hidden;}
+.screen{position:absolute;inset:0;display:none;flex-direction:column;opacity:0;}
+.screen.active{display:flex;animation:screenIn .6s cubic-bezier(.16,1,.3,1) forwards;}
+@keyframes screenIn{from{opacity:0;transform:scale(1.015)}to{opacity:1;transform:scale(1)}}
+
+/* buttons / atoms */
+.kicker{font-family:var(--sans);font-size:11px;letter-spacing:.34em;text-transform:uppercase;color:var(--green);opacity:.85;font-weight:700;}
+.btn{appearance:none;border:none;cursor:pointer;font-family:var(--sans);font-weight:800;border-radius:15px;padding:15px 20px;font-size:15px;
+  letter-spacing:.01em;background:linear-gradient(180deg,var(--green-2),var(--green-deep));color:#021b0f;box-shadow:var(--glow);
+  transition:transform .12s ease,box-shadow .2s ease;width:100%;display:inline-flex;align-items:center;justify-content:center;gap:9px;}
+.btn .svg-ic{font-size:19px;stroke-width:2.2;}
+.btn:hover{box-shadow:0 0 42px rgba(0,255,140,.6)} .btn:active{transform:scale(.96)}
+.btn.ghost{background:transparent;color:var(--green);border:1px solid var(--line-strong);box-shadow:none;}
+.pill{display:inline-flex;align-items:center;gap:7px;padding:7px 13px;border-radius:999px;font-size:12px;font-weight:600;
+  border:1px solid var(--line-strong);color:var(--green-2);background:rgba(0,255,140,.05);}
+.pill .svg-ic{font-size:14px;}
+
+/* ============================================================
+   ÉCRAN CODE — mobile centré · desktop split
+   ============================================================ */
+.code-wrap{flex:1;display:grid;grid-template-columns:1fr;}
+.code-hero{display:none;position:relative;padding:64px;flex-direction:column;justify-content:center;overflow:hidden;
+  background:radial-gradient(90% 90% at 22% 24%,#0c3a24,#02100a 72%);border-right:1px solid var(--hair);}
+.code-hero .halo{position:absolute;width:560px;height:560px;border-radius:50%;filter:blur(100px);background:#00ff8c;opacity:.18;top:16%;left:-12%;animation:floaty 20s ease-in-out infinite;}
+@keyframes floaty{50%{transform:translate(26px,20px)}}
+@media(min-width:1200px){
+  .code-hero .logo-mark,.code-hero .bigtitle,.code-hero .subtitle,.code-hero .hero-tags{max-width:min(100%,620px);}
+}
+.code-panel{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:28px;text-align:center;}
+.code-panel .glass{display:flex;flex-direction:column;align-items:center;text-align:center;width:100%;max-width:400px;}
+.code-panel .glass .plabel{display:none;}
+
+.logo-mark{font-family:var(--sans);font-size:12px;letter-spacing:.42em;color:var(--green);text-transform:uppercase;margin-bottom:22px;font-weight:700;opacity:0;animation:fadeUp .8s .1s forwards;}
+.bigtitle{font-family:var(--serif);font-weight:900;font-size:clamp(46px,13vw,82px);line-height:.9;letter-spacing:-.02em;margin:0;position:relative;
+  background:linear-gradient(178deg,#f2fff9,#00ff8c 135%);-webkit-background-clip:text;background-clip:text;color:transparent;
+  text-shadow:0 0 70px rgba(0,255,140,.22);opacity:0;animation:fadeUp .8s .2s forwards;}
+.bigtitle .sub{display:block;font-family:var(--sans);font-size:.20em;letter-spacing:.5em;-webkit-text-fill-color:var(--green);color:var(--green);margin-top:18px;text-shadow:none;font-weight:700;}
+.code-hero .bigtitle{text-align:left;font-size:clamp(58px,6.4vw,100px);}
+.subtitle{font-family:var(--serif);font-weight:500;color:var(--ink-2);font-size:17px;max-width:330px;margin:20px auto 0;line-height:1.5;opacity:0;animation:fadeUp .8s .35s forwards;}
+.code-hero .subtitle{margin:26px 0 0;font-size:20px;max-width:460px;}
+.hero-tags{display:flex;gap:12px;margin-top:36px;flex-wrap:wrap;opacity:0;animation:fadeUp .8s .5s forwards;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
+
+.code-dots{display:flex;gap:14px;justify-content:center;margin:30px 0 8px;opacity:0;animation:fadeUp .8s .5s forwards;}
+.dot{width:15px;height:15px;border-radius:50%;border:2px solid var(--line-strong);transition:.25s;}
+.dot.on{background:var(--green);border-color:var(--green);box-shadow:var(--glow);transform:scale(1.14);}
+.dot.err{border-color:var(--danger);background:var(--danger);box-shadow:0 0 18px var(--danger-glow);}
+.code-hint{font-size:12px;color:var(--muted);margin-bottom:22px;height:16px;letter-spacing:.03em;font-weight:600;}
+.code-hint.bad{color:var(--danger);}
+.keypad{display:grid;grid-template-columns:repeat(3,1fr);gap:13px;width:min(320px,82vw);opacity:0;animation:fadeUp .8s .6s forwards;}
+.key{aspect-ratio:1/1;border-radius:50%;border:1px solid var(--line);background:rgba(0,255,140,.035);color:var(--ink);
+  font-family:var(--serif);font-size:27px;font-weight:600;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:.12s;user-select:none;}
+.key:hover{border-color:var(--line-strong);background:rgba(0,255,140,.06);} .key:active{background:var(--green);color:#021b0f;transform:scale(.9);box-shadow:var(--glow);}
+.key.fn{font-family:var(--sans);font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);background:transparent;border-color:transparent;font-weight:700;}
+.key.fn .svg-ic{font-size:20px;}
+.shake{animation:shake .4s;}
+@keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-10px)}40%{transform:translateX(9px)}60%{transform:translateX(-6px)}80%{transform:translateX(4px)}}
+.unlock-burst{position:fixed;inset:0;z-index:300;background:radial-gradient(120% 120% at 50% 82%,var(--green-2),var(--green) 60%);display:none;align-items:center;justify-content:center;will-change:clip-path,opacity;}
+.unlock-burst.go{display:flex;animation:unlock 1.7s cubic-bezier(.65,0,.2,1) forwards;}
+@keyframes unlock{
+  0%{clip-path:circle(0% at 50% 82%);opacity:1;}
+  34%{clip-path:circle(155% at 50% 82%);opacity:1;}
+  58%{clip-path:circle(155% at 50% 82%);opacity:1;}
+  100%{clip-path:circle(155% at 50% 82%);opacity:0;filter:blur(6px);}
+}
+.unlock-burst b{font-family:var(--serif);font-size:clamp(28px,5vw,52px);font-weight:900;color:#021b0f;letter-spacing:.02em;animation:pop .55s .08s both,textOut .5s .85s forwards;}
+@keyframes pop{from{transform:scale(.3);opacity:0}to{transform:scale(1);opacity:1}}
+@keyframes textOut{to{opacity:0;transform:translateY(-8px) scale(.98)}}
+
+/* ============ PUB ENTRÉE ============ */
+.ad{align-items:center;justify-content:center;padding:24px;text-align:center;background:radial-gradient(120% 90% at 50% 0%,#0e3823,#02100a);}
+.ad-tag{position:absolute;top:22px;left:24px;font-size:10px;letter-spacing:.3em;color:var(--muted);text-transform:uppercase;font-weight:700;}
+.ad-card{width:100%;max-width:420px;border-radius:24px;overflow:hidden;border:1px solid var(--line-strong);background:linear-gradient(180deg,#0b291a,#051710);box-shadow:var(--glow-soft);position:relative;}
+.ad-visual{height:210px;position:relative;overflow:hidden;background:linear-gradient(135deg,#00ff8c,#00794a);display:flex;align-items:center;justify-content:center;}
+.ad-visual .shine{position:absolute;inset:0;background:linear-gradient(115deg,transparent 40%,rgba(255,255,255,.5) 50%,transparent 60%);animation:shine 2.8s linear infinite;}
+@keyframes shine{from{transform:translateX(-120%)}to{transform:translateX(120%)}}
+.ad-visual .bg-ic{font-size:96px;color:#021b0f;opacity:.9;} .ad-visual .bg-ic .svg-ic{stroke-width:1.3;}
+.ad-body{padding:24px 22px 26px;text-align:left;}
+.ad-body h3{font-family:var(--serif);font-weight:600;margin:8px 0 6px;font-size:23px;}
+.ad-body p{margin:0;color:var(--muted);font-size:14px;line-height:1.55;}
+.ad-cta{margin-top:20px;}
+.countdown{position:absolute;top:20px;right:20px;z-index:10;display:flex;align-items:center;gap:8px;font-size:12px;color:var(--ink);background:rgba(0,0,0,.4);border:1px solid var(--line);padding:8px 12px;border-radius:999px;font-weight:700;}
+.ring{width:26px;height:26px;} .ring circle{fill:none;stroke-width:3;} .ring .bg{stroke:rgba(255,255,255,.12);}
+.ring .fg{stroke:var(--green);stroke-linecap:round;transform:rotate(-90deg);transform-origin:50% 50%;stroke-dasharray:69;stroke-dashoffset:69;transition:stroke-dashoffset 1s linear;}
+.skip{position:absolute;top:18px;right:18px;z-index:11;display:none;width:auto!important;padding:10px 16px!important;font-size:13px!important;}
+.skip.show{display:block;}
+
+/* ============================================================
+   APP SHELL
+   ============================================================ */
+.app{flex:1;display:grid;grid-template-columns:1fr;min-height:0;position:relative;}
+
+/* SIDEBAR (desktop) */
+.side{display:none;flex-direction:column;padding:26px 18px;border-right:1px solid var(--hair);background:linear-gradient(180deg,var(--bg-2),var(--bg));gap:5px;}
+.side .brand{display:flex;align-items:center;gap:11px;font-weight:800;font-size:21px;letter-spacing:.01em;padding:4px 10px 24px;}
+.side .brand span{color:var(--green);}
+.b-dot{width:11px;height:11px;border-radius:50%;background:var(--green);box-shadow:var(--glow);animation:pulse 2.4s infinite;flex:0 0 auto;}
+@keyframes pulse{50%{transform:scale(.55);opacity:.55}}
+.snav{display:flex;align-items:center;gap:14px;padding:13px 16px;border-radius:13px;color:var(--muted);font-weight:600;font-size:15px;cursor:pointer;transition:.16s;border:1px solid transparent;}
+.snav .ic{font-size:21px;width:24px;display:flex;justify-content:center;}
+.snav:hover{color:var(--ink);background:rgba(0,255,140,.045);}
+.snav.on{color:var(--green);background:rgba(0,255,140,.075);border-color:var(--line-strong);box-shadow:inset 0 0 22px rgba(0,255,140,.05);}
+.snav .ncount{margin-left:auto;background:var(--danger);color:#fff;font-size:11px;font-weight:800;padding:2px 8px;border-radius:999px;}
+.side .publish{margin:18px 6px 0;}
+.side .spacer{flex:1;}
+.side .me{display:flex;align-items:center;gap:12px;padding:12px;border-radius:15px;border:1px solid var(--line);background:var(--panel);cursor:pointer;transition:.16s;}
+.side .me:hover{border-color:var(--line-strong);}
+.side .me .av{width:42px;height:42px;border-radius:50%;background:radial-gradient(circle at 30% 25%,#12572f,#04180d);display:flex;align-items:center;justify-content:center;font-family:var(--serif);font-weight:900;color:var(--green-2);border:1px solid var(--line-strong);}
+.side .me .info b{font-size:14px;display:block;font-weight:700;} .side .me .info small{font-size:11px;color:var(--muted);display:flex;align-items:center;gap:4px;} .side .me .info small .svg-ic{font-size:12px;color:var(--danger);}
+
+/* MAIN */
+.main{display:flex;flex-direction:column;min-width:0;min-height:0;}
+.topbar{position:sticky;top:0;z-index:30;background:linear-gradient(180deg,var(--bg-2) 74%,transparent);}
+.appbar{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:16px 18px 12px;}
+.brand-m{display:flex;align-items:center;gap:10px;font-weight:800;font-size:18px;letter-spacing:.01em;}
+.brand-m span{color:var(--green);}
+.search{display:none;flex:1;max-width:520px;align-items:center;gap:11px;background:rgba(0,255,140,.035);border:1px solid var(--line);border-radius:13px;padding:12px 16px;color:var(--muted);}
+.search .svg-ic{font-size:18px;flex:0 0 auto;} .search input{flex:1;background:none;border:none;outline:none;color:var(--ink);font-size:14px;font-family:var(--sans);font-weight:500;}
+.search input::placeholder{color:var(--muted);}
+.top-actions{display:none;align-items:center;gap:12px;}
+.avatar{width:38px;height:38px;border-radius:50%;border:1px solid var(--line-strong);background:radial-gradient(circle at 30% 25%,#0f4a2c,#03150c);display:flex;align-items:center;justify-content:center;font-family:var(--serif);font-weight:900;color:var(--green-2);cursor:pointer;position:relative;font-size:14px;}
+.avatar .badge{position:absolute;top:-3px;right:-3px;background:var(--danger);color:#fff;font-size:9px;font-weight:800;width:16px;height:16px;border-radius:50%;display:flex;align-items:center;justify-content:center;border:2px solid var(--bg-2);}
+.cats{display:flex;gap:9px;padding:4px 18px 14px;overflow-x:auto;}
+.cats::-webkit-scrollbar{display:none;}
+.cat{flex:0 0 auto;display:inline-flex;align-items:center;gap:8px;padding:9px 15px;border-radius:999px;font-size:13px;font-weight:600;white-space:nowrap;border:1px solid var(--line);color:var(--muted);background:rgba(0,255,140,.025);cursor:pointer;transition:.18s;}
+.cat .svg-ic{font-size:15px;} .cat:hover{color:var(--ink);border-color:var(--line-strong);}
+.cat.on{background:var(--green);color:#021b0f;border-color:var(--green);box-shadow:var(--glow);}
+
+.content{flex:1;overflow-y:auto;overflow-x:hidden;min-height:0;}
+.content::-webkit-scrollbar{width:8px;} .content::-webkit-scrollbar-thumb{background:var(--line-strong);border-radius:8px;}
+.view{display:none;} .view.on{display:block;animation:screenIn .4s;}
+.feed-head{display:none;padding:24px 26px 4px;}
+.feed-head h1{font-family:var(--serif);margin:0;font-size:30px;font-weight:600;letter-spacing:-.01em;}
+.feed-head p{margin:8px 0 0;color:var(--muted);font-size:14px;}
+
+/* ============ CARTES (contraste luxe × bon plan) ============ */
+.feed{padding:8px 16px 130px;display:grid;grid-template-columns:1fr;gap:16px;}
+.card{border-radius:var(--radius);border:1px solid var(--line);background:var(--panel);backdrop-filter:blur(10px);overflow:hidden;position:relative;
+  box-shadow:inset 0 1px 0 rgba(230,255,244,.06);opacity:0;transform:translateY(24px);animation:cardIn .6s forwards;
+  transition:transform .25s cubic-bezier(.16,1,.3,1),border-color .25s,box-shadow .3s;}
+@keyframes cardIn{to{opacity:1;transform:translateY(0)}}
+.card:hover{transform:translateY(-5px);border-color:var(--line-strong);box-shadow:inset 0 1px 0 rgba(230,255,244,.08),var(--glow-soft);}
+.card .top{display:flex;align-items:center;gap:10px;padding:14px 16px 0;}
+.mini-av{width:30px;height:30px;border-radius:50%;background:radial-gradient(circle at 30% 25%,#0f4a2c,#03150c);display:flex;align-items:center;justify-content:center;font-family:var(--serif);font-size:12px;font-weight:900;color:var(--green-2);border:1px solid var(--line);}
+.top .who{font-size:12px;color:var(--muted);line-height:1.35;} .top .who b{color:var(--ink);font-weight:700;}
+.verif{margin-left:auto;font-size:11px;font-weight:600;color:var(--green);display:flex;align-items:center;gap:5px;} .verif .svg-ic{font-size:14px;}
+.verif.new{color:var(--muted);}
+.deal-media{margin:12px 0 0;height:158px;position:relative;overflow:hidden;display:flex;align-items:flex-end;padding:16px;
+  background:radial-gradient(120% 130% at 78% 12%,#124d31,#04170e 85%);}
+.deal-media .auto-viz{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--green);font-size:82px;}
+.deal-media .auto-viz .svg-ic{stroke-width:1.2;filter:drop-shadow(0 0 22px rgba(0,255,140,.5));position:relative;z-index:1;}
+.deal-media .auto-viz .av-glow{position:absolute;width:190px;height:190px;border-radius:50%;background:radial-gradient(circle,rgba(0,255,140,.22),transparent 68%);}
+/* Aperçu du site (logo/favicon réel + domaine) quand un lien est fourni */
+.site-tile{position:absolute;top:50%;left:50%;transform:translate(-50%,-52%);width:76px;height:76px;border-radius:18px;overflow:hidden;display:flex;align-items:center;justify-content:center;border:1px solid var(--line-strong);background:linear-gradient(135deg,#0f4a2c,#04170e);box-shadow:var(--glow-soft);}
+.site-tile img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;background:#04170e;}
+.site-ini{font-family:var(--serif);font-weight:900;font-size:32px;color:var(--green-2);}
+.site-src{position:absolute;top:14px;left:14px;z-index:2;display:flex;align-items:center;gap:6px;font-size:11px;font-weight:600;color:var(--ink);background:rgba(2,16,10,.55);border:1px solid var(--line);padding:5px 10px;border-radius:999px;backdrop-filter:blur(6px);max-width:70%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.site-src .svg-ic{font-size:13px;color:var(--green-2);flex:0 0 auto;}
+.site-src .fav{width:16px;height:16px;border-radius:4px;object-fit:cover;flex:0 0 auto;}
+.deal-media .discount{position:relative;z-index:2;font-family:var(--serif);background:var(--green);color:#021b0f;font-weight:900;font-size:23px;padding:5px 13px;border-radius:11px;box-shadow:var(--glow);letter-spacing:-.01em;}
+.deal-media .expire{position:absolute;top:14px;right:14px;z-index:2;font-size:11px;font-weight:600;color:var(--ink);background:rgba(2,16,10,.6);border:1px solid var(--line);padding:5px 11px;border-radius:999px;display:flex;align-items:center;gap:6px;backdrop-filter:blur(6px);}
+.expire .svg-ic{font-size:13px;color:var(--green-2);}
+.deal-body{padding:16px 16px 4px;}
+.deal-body h3{font-family:var(--serif);font-weight:600;margin:0;font-size:19px;line-height:1.24;letter-spacing:-.005em;}
+.deal-body .price{display:flex;align-items:baseline;gap:10px;margin:12px 0 0;}
+.deal-body .price .now{font-family:var(--serif);font-size:26px;font-weight:900;color:var(--green);letter-spacing:-.01em;}
+.deal-body .price .old{font-size:14px;color:var(--muted);text-decoration:line-through;}
+.deal-body .desc{color:var(--muted);font-size:13px;line-height:1.55;margin:10px 0 0;}
+.tags{display:flex;gap:7px;flex-wrap:wrap;margin:14px 0 0;}
+.tag{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--green-2);border:1px solid var(--line);padding:5px 9px;border-radius:7px;background:rgba(0,255,140,.04);}
+.actions{display:flex;align-items:center;flex-wrap:wrap;gap:8px;padding:14px 16px 16px;border-top:1px solid var(--hair);margin-top:14px;}
+.actions .validate{flex:1 1 auto;justify-content:center;}
+.vote{display:flex;align-items:center;border:1px solid var(--line-strong);border-radius:13px;overflow:hidden;}
+.vote button{background:transparent;border:none;color:var(--ink);padding:8px 12px;cursor:pointer;transition:.15s;display:flex;font-size:15px;}
+.vote button:active{transform:scale(.85)} .vote .up.on{color:var(--green);} .vote .down.on{color:var(--danger);}
+.vote .cnt{min-width:46px;text-align:center;font-weight:800;font-size:14px;color:var(--green-2);font-variant-numeric:tabular-nums;}
+.act-btn{background:rgba(0,255,140,.04);border:1px solid var(--line);color:var(--muted);border-radius:11px;padding:9px 13px;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:7px;transition:.15s;font-family:var(--sans);}
+.act-btn .svg-ic{font-size:15px;} .act-btn:hover{color:var(--ink);border-color:var(--line-strong);} .act-btn:active{transform:scale(.92)}
+.report{margin-left:auto;border-color:rgba(255,77,106,.25);color:#ff8fa2;background:rgba(255,77,106,.05);}
+.report:hover{color:#fff;border-color:var(--danger);} .report:active{background:var(--danger);color:#fff;box-shadow:0 0 18px var(--danger-glow);}
+.card.flagged{border-color:rgba(255,77,106,.4);}
+.card .flag-tape{position:absolute;top:0;left:0;right:0;z-index:15;background:linear-gradient(90deg,var(--danger),#c00030);color:#fff;font-size:11px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;text-align:center;padding:7px;display:none;align-items:center;justify-content:center;gap:7px;}
+.flag-tape .svg-ic{font-size:14px;}
+.card.flagged .flag-tape{display:flex;animation:fadeUp .3s;}
+.card.removing{animation:removeCard .8s forwards;}
+@keyframes removeCard{40%{transform:scale(.98) rotate(-1deg);opacity:.7}to{transform:scale(.6) translateY(30px);opacity:0;height:0;margin:0;padding:0;}}
+
+/* RAIL (desktop) */
+.rail{display:none;flex-direction:column;gap:18px;padding:24px 20px;border-left:1px solid var(--hair);overflow-y:auto;background:linear-gradient(180deg,var(--bg-2),var(--bg));}
+.rail::-webkit-scrollbar{width:6px;} .rail::-webkit-scrollbar-thumb{background:var(--line-strong);border-radius:8px;}
+.rail-card{border-radius:18px;border:1px solid var(--line);background:var(--panel);padding:18px;box-shadow:inset 0 1px 0 rgba(230,255,244,.05);}
+.rail-card h4{margin:0 0 14px;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--green);font-weight:800;display:flex;align-items:center;gap:8px;} .rail-card h4 .svg-ic{font-size:15px;}
+.trend{display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid var(--hair);}
+.trend:last-child{border-bottom:none;}
+.trend .rank{font-family:var(--serif);font-size:16px;font-weight:900;color:var(--green);width:20px;}
+.trend .th{width:38px;height:38px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:19px;color:var(--green-2);background:linear-gradient(135deg,#0a3f24,#04170e);border:1px solid var(--line);flex:0 0 auto;}
+.trend .ti{flex:1;min-width:0;} .trend .ti b{font-size:13px;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:700;} .trend .ti small{font-size:11px;color:var(--muted);}
+.trend .tv{font-size:12px;font-weight:800;color:var(--green-2);font-variant-numeric:tabular-nums;}
+.lead{display:flex;align-items:center;gap:12px;padding:9px 0;}
+.lead .lrank{width:26px;height:26px;border-radius:50%;border:1px solid var(--line-strong);display:flex;align-items:center;justify-content:center;font-family:var(--serif);font-weight:900;font-size:13px;color:var(--green);flex:0 0 auto;}
+.lead .lav{width:34px;height:34px;border-radius:50%;background:radial-gradient(circle at 30% 25%,#0f4a2c,#03150c);display:flex;align-items:center;justify-content:center;font-family:var(--serif);font-size:12px;font-weight:900;color:var(--green-2);border:1px solid var(--line);}
+.lead .li{flex:1;} .lead .li b{font-size:13px;display:block;font-weight:700;} .lead .li small{font-size:11px;color:var(--muted);}
+.rail-ad{border-radius:18px;overflow:hidden;border:1px solid var(--line-strong);background:linear-gradient(180deg,#0b291a,#051710);box-shadow:var(--glow-soft);}
+.rail-ad .rv{height:120px;position:relative;overflow:hidden;background:linear-gradient(135deg,#00ff8c,#00794a);display:flex;align-items:center;justify-content:center;color:#021b0f;font-size:42px;}
+.rail-ad .rv .svg-ic{stroke-width:1.3;} .rail-ad .rv .shine{position:absolute;inset:0;background:linear-gradient(115deg,transparent 40%,rgba(255,255,255,.45) 50%,transparent 60%);animation:shine 3s linear infinite;}
+.rail-ad .rb{padding:16px;} .rail-ad .rb .kicker{margin-bottom:7px;display:block;} .rail-ad .rb b{font-family:var(--serif);font-weight:600;font-size:16px;display:block;} .rail-ad .rb small{color:var(--muted);font-size:12px;line-height:1.5;display:block;margin-top:3px;}
+
+/* PROFIL */
+.prof{padding-bottom:130px;}
+.prof-head{position:relative;padding:30px 20px 20px;text-align:center;overflow:hidden;background:radial-gradient(120% 100% at 50% -25%,#0f4a2c,transparent 62%);}
+.prof-av{width:92px;height:92px;border-radius:50%;margin:0 auto 14px;border:2px solid var(--green);background:radial-gradient(circle at 30% 25%,#12572f,#04180d);display:flex;align-items:center;justify-content:center;font-family:var(--serif);font-size:36px;font-weight:900;color:var(--green-2);box-shadow:var(--glow);}
+.prof-name{font-family:var(--serif);font-size:26px;font-weight:600;margin:0;}
+.prof-handle{color:var(--muted);font-size:13px;margin:4px 0 0;}
+.prof-stats{display:flex;justify-content:center;gap:34px;margin:20px 0 4px;}
+.pstat b{font-family:var(--serif);display:block;font-size:24px;font-weight:900;color:var(--green);}
+.pstat span{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.09em;}
+.prof-inner{max-width:760px;margin:0 auto;}
+.trust{margin:18px;border-radius:var(--radius);border:1px solid var(--line);background:var(--panel);padding:20px;box-shadow:inset 0 1px 0 rgba(230,255,244,.05);}
+.trust-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;gap:12px;}
+.trust-top h4{font-family:var(--serif);font-weight:600;margin:0;font-size:17px;display:flex;align-items:center;gap:9px;} .trust-top h4 .svg-ic{font-size:19px;color:var(--green);}
+.trust-top .status{font-size:11px;font-weight:800;padding:6px 12px;border-radius:999px;letter-spacing:.04em;white-space:nowrap;}
+.status.ok{color:var(--green);background:rgba(0,255,140,.1);border:1px solid var(--line-strong);}
+.status.warn{color:var(--danger);background:rgba(255,77,106,.1);border:1px solid rgba(255,77,106,.35);}
+.strikes{display:flex;gap:10px;}
+.strike{flex:1;height:9px;border-radius:6px;background:rgba(255,255,255,.05);border:1px solid var(--line);overflow:hidden;}
+.strike.filled{background:var(--danger);border-color:var(--danger);box-shadow:0 0 14px var(--danger-glow);}
+.trust-note{font-size:13px;color:var(--muted);margin:14px 0 0;line-height:1.6;} .trust-note b{color:var(--danger);font-weight:700;}
+.sec-title{padding:22px 20px 10px;font-size:11px;letter-spacing:.15em;text-transform:uppercase;color:var(--green);font-weight:800;}
+.badges{display:flex;gap:10px;padding:0 18px 6px;overflow-x:auto;}
+.badges::-webkit-scrollbar{display:none;}
+.badge2{flex:0 0 auto;width:96px;text-align:center;padding:16px 8px;border-radius:15px;border:1px solid var(--line);background:rgba(0,255,140,.03);transition:.16s;}
+.badge2:hover{border-color:var(--line-strong);transform:translateY(-3px);}
+.badge2 .bico{font-size:26px;color:var(--green-2);display:flex;justify-content:center;} .badge2 .bico .svg-ic{stroke-width:1.5;}
+.badge2 span{display:block;font-size:10px;color:var(--muted);margin-top:9px;line-height:1.3;font-weight:600;}
+.badge2.locked{opacity:.32;filter:grayscale(.6);}
+.mini-deals{padding:0 16px;display:grid;grid-template-columns:1fr;gap:10px;}
+.mini-deal{display:flex;align-items:center;gap:12px;padding:12px;border-radius:14px;border:1px solid var(--line);background:var(--panel);}
+.mini-deal .thumb{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:21px;color:var(--green-2);background:linear-gradient(135deg,#0a3f24,#04170e);border:1px solid var(--line);flex:0 0 auto;}
+.mini-deal .info{flex:1;min-width:0;} .mini-deal .info h5{margin:0;font-size:14px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;} .mini-deal .info p{margin:3px 0 0;font-size:12px;color:var(--muted);}
+.mini-deal .st{font-size:10px;font-weight:800;letter-spacing:.05em;padding:5px 9px;border-radius:8px;white-space:nowrap;}
+.st.live{color:var(--green);background:rgba(0,255,140,.1);} .st.dead{color:var(--danger);background:rgba(255,77,106,.1);}
+
+/* MOBILE TABBAR */
+.tabbar{display:flex;justify-content:space-around;padding:12px 14px calc(14px + env(safe-area-inset-bottom));background:linear-gradient(0deg,var(--bg-2) 68%,transparent);border-top:1px solid var(--hair);z-index:40;}
+.tab{display:flex;flex-direction:column;align-items:center;gap:4px;font-size:10px;font-weight:600;color:var(--muted);cursor:pointer;transition:.15s;padding:4px 10px;border-radius:12px;}
+.tab .ic{font-size:21px;line-height:1;display:flex;} .tab.on{color:var(--green);} .tab.on .ic .svg-ic{filter:drop-shadow(var(--glow));}
+.tab.fab{position:relative;top:-16px;background:var(--green);color:#021b0f;width:56px;height:56px;border-radius:50%;justify-content:center;box-shadow:var(--glow);}
+.tab.fab .ic{font-size:26px;} .tab.fab .ic .svg-ic{stroke-width:2.4;}
+
+/* SHEETS / TOAST */
+.sheet-bg{position:fixed;inset:0;z-index:90;background:rgba(0,8,5,.74);backdrop-filter:blur(5px);display:none;align-items:flex-end;justify-content:center;}
+.sheet-bg.show{display:flex;animation:fadeIn .25s;}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.sheet{width:100%;max-width:460px;background:var(--panel-solid);border:1px solid var(--line-strong);border-bottom:none;border-radius:26px 26px 0 0;padding:22px 20px calc(24px + env(safe-area-inset-bottom));animation:sheetUp .4s cubic-bezier(.16,1,.3,1);}
+@keyframes sheetUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.sheet .grip{width:42px;height:5px;border-radius:3px;background:var(--line-strong);margin:0 auto 18px;}
+.sheet h3{font-family:var(--serif);font-weight:600;margin:0 0 6px;font-size:20px;} .sheet p{margin:0 0 16px;color:var(--muted);font-size:13px;line-height:1.55;}
+.reason{display:flex;flex-direction:column;gap:10px;margin-bottom:18px;}
+.reason button{text-align:left;display:flex;align-items:center;gap:13px;padding:15px 16px;border-radius:13px;border:1px solid var(--line);background:rgba(0,255,140,.025);color:var(--ink);font-size:14px;font-weight:600;cursor:pointer;transition:.15s;font-family:var(--sans);}
+.reason button:hover{border-color:var(--danger);background:rgba(255,77,106,.06);} .reason button .rico{font-size:20px;color:var(--danger);display:flex;}
+.toast{position:fixed;left:50%;bottom:96px;transform:translate(-50%,20px);z-index:95;background:var(--panel-solid);border:1px solid var(--line-strong);border-radius:15px;padding:14px 18px;display:flex;align-items:center;gap:12px;max-width:88%;opacity:0;pointer-events:none;box-shadow:var(--glow-soft);}
+.toast.show{opacity:1;transform:translate(-50%,0);transition:.4s cubic-bezier(.16,1,.3,1);}
+.toast .ico{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;flex:0 0 auto;}
+.toast.good .ico{background:rgba(0,255,140,.14);color:var(--green);} .toast.warn .ico{background:rgba(255,77,106,.14);color:var(--danger);}
+.toast b{font-size:13px;display:block;font-weight:700;} .toast small{font-size:11px;color:var(--muted);}
+@media(min-width:960px){.sheet{border-radius:26px;} .sheet-bg{align-items:center;} .toast{bottom:32px;left:auto;right:32px;transform:translateX(20px);max-width:360px;} .toast.show{transform:translateX(0);}}
+
+/* ============ CONNEXION / INSCRIPTION ============ */
+#s-auth{align-items:center;justify-content:center;padding:24px;}
+.auth-wrap{width:100%;max-width:420px;}
+.auth-card{border:1px solid var(--line-strong);background:var(--panel);backdrop-filter:blur(12px);border-radius:26px;padding:32px 26px;box-shadow:var(--glow-soft);}
+.auth-title{font-family:var(--serif);font-weight:600;font-size:26px;margin:6px 0 6px;}
+.auth-sub{color:var(--muted);font-size:13px;margin:0 0 20px;line-height:1.5;}
+.auth-tabs{display:flex;gap:6px;background:rgba(0,255,140,.04);border:1px solid var(--line);border-radius:12px;padding:5px;margin-bottom:18px;}
+.auth-tab{flex:1;padding:10px;border:none;background:none;color:var(--muted);font-weight:700;font-size:14px;border-radius:9px;cursor:pointer;font-family:var(--sans);transition:.16s;}
+.auth-tab.on{background:var(--green);color:#021b0f;}
+.auth-in{margin-bottom:12px;}
+.auth-err{color:var(--danger);font-size:12px;min-height:16px;margin:0 0 10px;font-weight:600;}
+
+/* ============ FICHE DU BON PLAN ============ */
+.deal-sheet{position:relative;max-width:560px;max-height:88vh;overflow-y:auto;}
+.deal-sheet::-webkit-scrollbar{width:7px;} .deal-sheet::-webkit-scrollbar-thumb{background:var(--line-strong);border-radius:8px;}
+.ds-close{position:absolute;top:14px;right:14px;width:34px;height:34px;border-radius:50%;border:1px solid var(--line);background:rgba(0,255,140,.05);color:var(--muted);cursor:pointer;font-size:15px;z-index:5;line-height:1;}
+.ds-close:hover{color:var(--ink);border-color:var(--line-strong);}
+.ds-head{display:flex;gap:14px;align-items:flex-start;margin:2px 0 14px;}
+.ds-viz{width:70px;height:70px;border-radius:16px;flex:0 0 auto;display:flex;align-items:center;justify-content:center;color:var(--green);font-size:34px;background:linear-gradient(135deg,#0f4a2c,#04170e);border:1px solid var(--line-strong);box-shadow:var(--glow-soft);}
+.ds-viz .svg-ic{stroke-width:1.3;filter:drop-shadow(0 0 14px rgba(0,255,140,.5));}
+.ds-h-txt{flex:1;min-width:0;padding-right:30px;}
+.ds-h-txt h3{font-family:var(--serif);font-weight:600;font-size:21px;margin:9px 0 8px;line-height:1.2;}
+.ds-price{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;}
+.ds-price .now{font-family:var(--serif);font-size:23px;font-weight:900;color:var(--green);}
+.ds-price .old{font-size:14px;color:var(--muted);text-decoration:line-through;}
+.ds-price .ds-disc{font-size:11px;font-weight:800;color:#021b0f;background:var(--green);padding:3px 9px;border-radius:7px;}
+.ds-meta{display:flex;flex-wrap:wrap;gap:8px 16px;font-size:12px;color:var(--muted);align-items:center;margin-bottom:14px;}
+.ds-meta span{display:inline-flex;align-items:center;gap:6px;} .ds-meta .svg-ic{font-size:14px;color:var(--green-2);} .ds-meta b{color:var(--ink);font-weight:800;}
+.ds-desc{font-size:14px;color:var(--ink-2);line-height:1.55;margin:0 0 16px;}
+.ds-cta{margin-bottom:6px;text-decoration:none;}
+.ds-section{display:flex;align-items:center;gap:8px;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--green);font-weight:800;margin:20px 0 12px;} .ds-section .svg-ic{font-size:15px;}
+.ds-steps{margin:0;padding:0;list-style:none;counter-reset:step;display:flex;flex-direction:column;gap:11px;}
+.ds-steps li{position:relative;padding-left:42px;font-size:14px;color:var(--ink-2);line-height:1.5;counter-increment:step;min-height:28px;display:flex;align-items:center;}
+.ds-steps li::before{content:counter(step);position:absolute;left:0;top:0;width:28px;height:28px;border-radius:50%;background:rgba(0,255,140,.1);border:1px solid var(--line-strong);color:var(--green);font-weight:800;font-size:13px;display:flex;align-items:center;justify-content:center;font-family:var(--serif);}
+.ds-video{position:relative;aspect-ratio:16/9;border-radius:14px;overflow:hidden;border:1px solid var(--line-strong);background:radial-gradient(120% 120% at 50% 30%,#12522f,#04170e);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;cursor:pointer;margin-top:2px;}
+.ds-video .dv-play{width:60px;height:60px;border-radius:50%;background:var(--green);color:#021b0f;display:flex;align-items:center;justify-content:center;box-shadow:var(--glow);font-size:24px;}
+.ds-video .dv-play .svg-ic{fill:#021b0f;stroke:none;width:26px;height:26px;margin-left:3px;}
+.ds-video .dv-label{font-size:13px;color:var(--ink-2);font-weight:600;}
+.ds-video.playing{cursor:default;background:#000;}
+.ds-video iframe{position:absolute;inset:0;width:100%;height:100%;border:0;}
+.ds-foot{display:flex;gap:8px;flex-wrap:wrap;margin-top:22px;padding-top:16px;border-top:1px solid var(--hair);}
+.ds-foot .validate{flex:1 1 auto;justify-content:center;}
+
+/* demo bar */
+.demobar{position:fixed;z-index:200;bottom:14px;left:50%;transform:translateX(-50%);display:flex;gap:8px;background:rgba(3,17,10,.92);border:1px solid var(--line-strong);border-radius:999px;padding:7px 8px;box-shadow:var(--glow-soft);}
+.demobar b{font-size:9px;letter-spacing:.2em;color:var(--green);text-transform:uppercase;align-self:center;padding:0 6px;font-weight:800;}
+.demobar button{font-size:11px;font-weight:700;border:1px solid var(--line);background:transparent;color:var(--muted);padding:7px 11px;border-radius:999px;cursor:pointer;white-space:nowrap;font-family:var(--sans);}
+.demobar button:hover{color:var(--green);border-color:var(--line-strong);}
+.f2min-note{font-size:11px;color:var(--muted);text-align:center;padding:4px;line-height:1.5;}
+
+/* ============ BADGE PLAN + META + BOUTONS ============ */
+.plan-badge{display:inline-flex;align-items:center;gap:6px;font-size:10px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;padding:5px 10px;border-radius:8px;margin:0 0 10px;}
+.plan-badge .svg-ic{font-size:13px;stroke-width:1.9;}
+.plan-badge.b-green{color:var(--green);background:rgba(0,255,140,.1);border:1px solid var(--line-strong);}
+.plan-badge.b-hot{color:#dcff5a;background:rgba(201,255,46,.09);border:1px solid rgba(201,255,46,.32);}
+.plan-badge.b-dim{color:var(--muted);background:rgba(255,255,255,.03);border:1px solid var(--line);}
+.plan-badge.b-gold{color:#06210f;background:linear-gradient(90deg,#c9ff2e,#00ff8c);border:1px solid transparent;box-shadow:0 0 20px rgba(201,255,46,.4);}
+.card.moment{border-color:rgba(201,255,46,.42);box-shadow:inset 0 1px 0 rgba(230,255,244,.08),0 0 48px rgba(201,255,46,.14);}
+.card.moment .deal-media{background:radial-gradient(120% 130% at 78% 12%,#1c5a2a,#0a2410 85%);}
+
+.deal-meta{display:flex;gap:18px;padding:14px 0 2px;font-size:12px;color:var(--muted);}
+.deal-meta span{display:inline-flex;align-items:center;gap:6px;} .deal-meta .svg-ic{font-size:14px;color:var(--green-2);} .deal-meta b{color:var(--ink);font-weight:800;}
+
+.validate{color:var(--green);border-color:var(--line-strong)!important;background:rgba(0,255,140,.07)!important;}
+.validate:hover{color:#021b0f;background:var(--green)!important;border-color:var(--green)!important;}
+.validate.done{background:var(--green)!important;color:#021b0f!important;border-color:var(--green)!important;cursor:default;box-shadow:var(--glow);}
+.validate .svg-ic{stroke-width:2.3;}
+.ban{border-color:rgba(255,77,106,.28)!important;color:#ff8fa2!important;background:rgba(255,77,106,.06)!important;}
+.ban:hover{color:#fff!important;border-color:var(--danger)!important;background:var(--danger)!important;}
+.ban:active{box-shadow:0 0 18px var(--danger-glow);}
+
+/* ============ ICON BTN / MOBILE ACTIONS ============ */
+.icon-btn{width:38px;height:38px;border-radius:50%;border:1px solid var(--line);background:rgba(0,255,140,.04);color:var(--green-2);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:18px;flex:0 0 auto;transition:.15s;}
+.icon-btn .svg-ic{font-size:18px;} .icon-btn:hover{border-color:var(--line-strong);color:var(--green);}
+.brand-m{margin-right:auto;}
+
+/* ============ SAVE (favori) ============ */
+.save{position:absolute;top:12px;left:12px;z-index:16;width:38px;height:38px;border-radius:50%;border:1px solid var(--line-strong);background:rgba(2,16,10,.55);backdrop-filter:blur(6px);color:var(--ink);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:.18s;}
+.save .svg-ic{font-size:18px;} .save:hover{border-color:var(--green);transform:scale(1.06);}
+.save.on{background:var(--green);color:#021b0f;border-color:var(--green);box-shadow:var(--glow);}
+.save.on .svg-ic{fill:#021b0f;}
+
+/* ============ EMPTY STATE ============ */
+.empty{text-align:center;padding:54px 26px;}
+.empty .ic{font-size:42px;color:var(--line-strong);display:flex;justify-content:center;margin-bottom:16px;}
+.empty b{display:block;font-family:var(--serif);font-size:21px;color:var(--ink);font-weight:600;margin-bottom:7px;}
+.empty p{margin:0;font-size:13px;color:var(--muted);}
+
+/* ============ EXPLORER ============ */
+.ex-search{display:flex;align-items:center;gap:11px;margin:8px 16px 6px;background:rgba(0,255,140,.04);border:1px solid var(--line);border-radius:14px;padding:14px 16px;}
+.ex-search .svg-ic{font-size:19px;color:var(--muted);flex:0 0 auto;}
+.ex-search input{flex:1;min-width:0;background:none;border:none;outline:none;color:var(--ink);font-size:15px;font-family:var(--sans);font-weight:500;}
+.ex-search input::placeholder{color:var(--muted);}
+.ex-clear{background:none;border:none;color:var(--green);font-weight:700;cursor:pointer;font-size:13px;font-family:var(--sans);white-space:nowrap;}
+.ex-cats{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;padding:0 16px;}
+.ex-tile{display:flex;align-items:center;gap:12px;padding:14px;border-radius:14px;border:1px solid var(--line);background:var(--panel);cursor:pointer;transition:.16s;}
+.ex-tile:hover{border-color:var(--line-strong);transform:translateY(-2px);}
+.ex-tile.on{border-color:var(--green);background:rgba(0,255,140,.06);box-shadow:inset 0 0 22px rgba(0,255,140,.05);}
+.ex-tile .ti{width:40px;height:40px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:20px;color:var(--green-2);background:linear-gradient(135deg,#0a3f24,#04170e);border:1px solid var(--line);flex:0 0 auto;}
+.ex-tile.on .ti{color:var(--green);}
+.ex-tile .tt{flex:1;min-width:0;} .ex-tile .tt b{display:block;font-size:14px;font-weight:700;} .ex-tile .tt small{font-size:11px;color:var(--muted);}
+
+/* ============ ALERTES ============ */
+.al-wrap{max-width:720px;margin:0 auto;}
+.al-create{margin:8px 16px 0;padding:20px;border-radius:var(--radius);border:1px solid var(--line);background:var(--panel);box-shadow:inset 0 1px 0 rgba(230,255,244,.05);}
+.al-input{width:100%;background:rgba(0,255,140,.04);border:1px solid var(--line);border-radius:12px;padding:13px 15px;color:var(--ink);font-size:15px;font-family:var(--sans);font-weight:500;outline:none;margin-bottom:16px;}
+.al-input::placeholder{color:var(--muted);} .al-input:focus{border-color:var(--line-strong);}
+.al-sublabel{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:700;margin-bottom:10px;}
+.al-cats{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px;}
+.al-chip{display:inline-flex;align-items:center;gap:7px;padding:9px 13px;border-radius:999px;font-size:13px;font-weight:600;border:1px solid var(--line);color:var(--muted);background:rgba(0,255,140,.025);cursor:pointer;transition:.16s;}
+.al-chip .svg-ic{font-size:15px;} .al-chip:hover{color:var(--ink);border-color:var(--line-strong);}
+.al-chip.on{background:var(--green);color:#021b0f;border-color:var(--green);}
+.al-list{padding:0 16px;display:flex;flex-direction:column;gap:10px;}
+.al-item{display:flex;align-items:center;gap:13px;padding:14px 16px;border-radius:14px;border:1px solid var(--line);background:var(--panel);transition:.16s;}
+.al-item.off{opacity:.5;}
+.al-item .aic{width:40px;height:40px;border-radius:11px;display:flex;align-items:center;justify-content:center;color:var(--green-2);background:linear-gradient(135deg,#0a3f24,#04170e);border:1px solid var(--line);flex:0 0 auto;}
+.al-item .ainfo{flex:1;min-width:0;} .al-item .ainfo b{font-size:14px;font-weight:700;display:block;} .al-item .ainfo small{font-size:12px;color:var(--muted);}
+.al-del{background:none;border:none;color:var(--muted);cursor:pointer;padding:6px;display:flex;font-size:18px;} .al-del:hover{color:var(--danger);}
+.switch{width:44px;height:26px;border-radius:999px;background:rgba(255,255,255,.08);border:1px solid var(--line);position:relative;cursor:pointer;transition:.2s;flex:0 0 auto;}
+.switch::after{content:"";position:absolute;top:2px;left:2px;width:20px;height:20px;border-radius:50%;background:var(--muted);transition:.2s;}
+.switch.on{background:rgba(0,255,140,.22);border-color:var(--green);}
+.switch.on::after{left:20px;background:var(--green);box-shadow:var(--glow);}
+
+.main.nofeedbar .cats,.main.nofeedbar .search{display:none;}
+
+/* ============ NOTIFICATIONS ============ */
+.notif-list{padding:0 16px;display:flex;flex-direction:column;gap:10px;}
+.notif{display:flex;align-items:center;gap:13px;padding:14px 16px;border-radius:14px;border:1px solid var(--line);background:var(--panel);transition:.16s;}
+.notif.unread{border-color:var(--line-strong);background:rgba(0,255,140,.05);box-shadow:inset 3px 0 0 var(--green);}
+.notif .nic{width:38px;height:38px;border-radius:11px;display:flex;align-items:center;justify-content:center;color:var(--green-2);background:linear-gradient(135deg,#0a3f24,#04170e);border:1px solid var(--line);flex:0 0 auto;}
+.notif.unread .nic{color:var(--green);}
+.notif .ninfo{flex:1;min-width:0;} .notif .ninfo b{font-size:14px;font-weight:700;display:block;} .notif .ninfo small{font-size:12px;color:var(--muted);line-height:1.45;}
+.notif-go{background:rgba(0,255,140,.06);border:1px solid var(--line-strong);color:var(--green);font-weight:700;font-size:12px;padding:8px 13px;border-radius:10px;cursor:pointer;font-family:var(--sans);flex:0 0 auto;}
+.notif-go:hover{background:var(--green);color:#021b0f;border-color:var(--green);}
+
+/* tab badge (mobile) */
+.tab{position:relative;}
+.tcount{position:absolute;top:-2px;right:2px;background:var(--danger);color:#fff;font-size:9px;font-weight:800;min-width:16px;height:16px;padding:0 3px;border-radius:999px;display:flex;align-items:center;justify-content:center;border:2px solid var(--bg-2);}
+
+/* publish form */
+.pub-row{display:flex;gap:10px;} .pub-row .al-input{flex:1;min-width:0;}
+textarea.al-input{resize:none;font-family:var(--sans);line-height:1.5;}
+
+/* ============ DESKTOP ≥ 960 ============ */
+@media(min-width:960px){
+  .code-wrap{grid-template-columns:1fr minmax(440px,560px);}
+  .code-hero{display:flex;}
+  .code-panel .logo-mark,.code-panel .bigtitle,.code-panel .subtitle{display:none;}
+  .code-panel{background:radial-gradient(90% 90% at 80% 20%,#0a2c1a,#02100a 72%);}
+  .code-panel .glass{width:min(420px,86%);padding:42px 34px;border-radius:28px;border:1px solid var(--line-strong);background:var(--panel);backdrop-filter:blur(14px);box-shadow:var(--glow-soft);}
+  .code-panel .glass .plabel{font-family:var(--sans);font-size:12px;letter-spacing:.3em;text-transform:uppercase;color:var(--green);margin-bottom:22px;font-weight:700;}
+  .app{grid-template-columns:var(--side) minmax(0,1fr) var(--rail);}
+  .side,.rail{display:flex;} .tabbar,.brand-m{display:none;}
+  .appbar{padding:20px 26px 14px;} .search,.top-actions{display:flex;} .avatar.mobile-only{display:none;}
+  .cats{padding:4px 26px 16px;} .feed-head{display:block;}
+  .feed{grid-template-columns:repeat(2,1fr);padding:12px 26px 60px;gap:20px;}
+  .mini-deals{grid-template-columns:repeat(2,1fr);padding:0 20px;}
+  .prof-head{padding:42px 20px 24px;}
+  .mobile-only{display:none!important;}
+  .ex-search{margin:8px 26px 6px;} .ex-cats{grid-template-columns:repeat(3,1fr);padding:0 26px;}
+  .al-create,.al-list{margin-left:0;margin-right:0;} .al-list{padding:0;}
+}
+@media(min-width:1400px){.feed{grid-template-columns:repeat(3,1fr);}}
+
+/* ============ GRAND ÉCRAN / iMac ≥ 1700px ============ */
+@media(min-width:1700px){
+  :root{--side:300px;--rail:372px;}
+  /* CODE : composition centrée et resserrée, pad ancré dans un panneau à droite */
+  #s-code{align-items:center;}
+  .code-wrap{width:100%;max-width:1480px;margin:0 auto;grid-template-columns:1fr minmax(460px,560px);}
+  .code-hero{padding:72px;}
+  .code-hero .bigtitle{font-size:clamp(64px,5vw,104px);}
+  .code-hero .subtitle{font-size:21px;max-width:500px;}
+  .code-panel{padding:40px;}
+  .code-panel .glass{width:min(452px,86%);padding:44px 40px;border-radius:30px;}
+  /* APP : plus d'air, feed 4 colonnes */
+  .feed{grid-template-columns:repeat(4,1fr);padding:16px 40px 64px;gap:22px;}
+  .feed-head{padding:28px 40px 4px;} .feed-head h1{font-size:34px;}
+  .appbar{padding:24px 40px 16px;} .cats{padding:6px 40px 20px;}
+  .mini-deals{padding:0 40px;} .prof-inner{max-width:900px;}
+  .rail,.side{padding-top:30px;}
+}
+/* ultra-large ≥ 2300px : contenu borné et centré pour rester lisible */
+@media(min-width:2300px){
+  .code-wrap{max-width:1560px;}
+  .feed{max-width:2100px;margin:0 auto;}
+  .feed-head{max-width:2100px;margin-left:auto;margin-right:auto;}
+}
+</style>
+</head>
+<body>
+
+<!-- ============ SPRITE ICÔNES PREMIUM ============ -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-spark" viewBox="0 0 24 24"><path d="M12 2c.4 4.9 1.6 6.1 6.5 6.5-4.9.4-6.1 1.6-6.5 6.5-.4-4.9-1.6-6.1-6.5-6.5 4.9-.4 6.1-1.6 6.5-6.5z"/><path d="M18.5 15.5c.2 2 .7 2.5 2.7 2.7-2 .2-2.5.7-2.7 2.7-.2-2-.7-2.5-2.7-2.7 2-.2 2.5-.7 2.7-2.7z"/></symbol>
+  <symbol id="i-compass" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M14.6 9.4 10.8 10.8 9.4 14.6 13.2 13.2z"/></symbol>
+  <symbol id="i-bell" viewBox="0 0 24 24"><path d="M18 16v-5a6 6 0 0 0-12 0v5l-1.5 2h15z"/><path d="M9.5 20a2.5 2.5 0 0 0 5 0"/></symbol>
+  <symbol id="i-heart" viewBox="0 0 24 24"><path d="M12 20.5S3.5 15 3.5 9A4 4 0 0 1 12 6.8 4 4 0 0 1 20.5 9c0 6-8.5 11.5-8.5 11.5z"/></symbol>
+  <symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8.5" r="4"/><path d="M5 20a7 7 0 0 1 14 0"/></symbol>
+  <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="M20 20l-4.4-4.4"/></symbol>
+  <symbol id="i-link" viewBox="0 0 24 24"><path d="M14 4.5h5.5V10"/><path d="M19.5 4.5 11 13"/><path d="M18 13.5V18a1.5 1.5 0 0 1-1.5 1.5h-11A1.5 1.5 0 0 1 4 18V7a1.5 1.5 0 0 1 1.5-1.5H10"/></symbol>
+  <symbol id="i-flag" viewBox="0 0 24 24"><path d="M6.5 21V4"/><path d="M6.5 4.5h11l-2 4 2 4h-11"/></symbol>
+  <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></symbol>
+  <symbol id="i-verified" viewBox="0 0 24 24"><path d="M12 3l2.4 1.7 3-.2 1 2.8 2.6 1.5-1 2.9 1 2.9-2.6 1.5-1 2.8-3-.2L12 21l-2.4-1.7-3 .2-1-2.8L3 15.4l1-2.9-1-2.9 2.6-1.5 1-2.8 3 .2z"/><path d="M9 12l2 2 4-4"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5.5v13"/><path d="M5.5 12h13"/></symbol>
+  <symbol id="i-gift" viewBox="0 0 24 24"><path d="M4.5 11.5h15V20a1 1 0 0 1-1 1h-13a1 1 0 0 1-1-1z"/><path d="M3.5 8h17v3.5h-17z"/><path d="M12 8v13"/><path d="M12 8C11 5 9.5 4 8 4.5S6.5 7.5 9 8h3"/><path d="M12 8c1-3 2.5-4 4-3.5S17.5 7.5 15 8h-3"/></symbol>
+  <symbol id="i-trophy" viewBox="0 0 24 24"><path d="M8 4.5h8V9a4 4 0 0 1-8 0z"/><path d="M8 6.5H5.5A2.5 2.5 0 0 0 8 9"/><path d="M16 6.5h2.5A2.5 2.5 0 0 1 16 9"/><path d="M12 13v3"/><path d="M9 20h6"/><path d="M10 20l.5-4h3l.5 4"/></symbol>
+  <symbol id="i-trend" viewBox="0 0 24 24"><path d="M4 15.5l5-5 3 3 7.5-7.5"/><path d="M15.5 6h5v5"/></symbol>
+  <symbol id="i-scale" viewBox="0 0 24 24"><path d="M12 4v16"/><path d="M7.5 20h9"/><path d="M6 8.5h12"/><path d="M6 8.5 3.5 14a2.5 2.5 0 0 0 5 0z"/><path d="M18 8.5 15.5 14a2.5 2.5 0 0 0 5 0z"/></symbol>
+  <symbol id="i-food" viewBox="0 0 24 24"><path d="M7 3.5v6a2 2 0 0 0 4 0v-6"/><path d="M9 9.5V21"/><path d="M17.5 3.5c-2 0-3 2.5-3 5.5s1 3.5 3 3.5V21"/></symbol>
+  <symbol id="i-mode" viewBox="0 0 24 24"><path d="M4.5 12.5l8-8h6.5v6.5l-8 8z"/><circle cx="15.5" cy="8.5" r=".7"/></symbol>
+  <symbol id="i-tech" viewBox="0 0 24 24"><rect x="7" y="3.5" width="10" height="17" rx="1.5"/><path d="M10.5 18h3"/></symbol>
+  <symbol id="i-voyage" viewBox="0 0 24 24"><path d="M21 4 3 11l6.5 2.5L12 20l3-7 6-9z"/><path d="M9.5 13.5 15 7.5"/></symbol>
+  <symbol id="i-gaming" viewBox="0 0 24 24"><path d="M9 8.5h6a5 5 0 0 1 5 5l-.4 3.2a2.3 2.3 0 0 1-4.2 1L14.5 16h-5l-.9 1.7a2.3 2.3 0 0 1-4.2-1L4 13.5a5 5 0 0 1 5-5z"/><path d="M7 12v3"/><path d="M5.5 13.5h3"/><path d="M15.5 12.5h.01"/><path d="M17.5 14.5h.01"/></symbol>
+  <symbol id="i-home" viewBox="0 0 24 24"><path d="M4 11.5 12 4.5l8 7"/><path d="M6 10v9.5a.5.5 0 0 0 .5.5h11a.5.5 0 0 0 .5-.5V10"/></symbol>
+  <symbol id="i-alert" viewBox="0 0 24 24"><path d="M12 4 2.5 20h19z"/><path d="M12 10v4.5"/><path d="M12 17.5h.01"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></symbol>
+  <symbol id="i-bolt" viewBox="0 0 24 24"><path d="M13 3 5 13h5l-1 8 8-10h-5z"/></symbol>
+  <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3l7 2.5V11c0 4.5-3 7.8-7 9.5C8 18.8 5 15.5 5 11V5.5z"/><path d="M9 11.5l2 2 4-4"/></symbol>
+  <symbol id="i-medal" viewBox="0 0 24 24"><circle cx="12" cy="14.5" r="5"/><path d="M9 3l3 5 3-5"/><path d="M12 12.2l.8 1.6 1.7.2-1.2 1.2.3 1.7-1.6-.8-1.6.8.3-1.7-1.2-1.2 1.7-.2z"/></symbol>
+  <symbol id="i-trash" viewBox="0 0 24 24"><path d="M5 7h14"/><path d="M9 7V5.5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1V7"/><path d="M7 7l1 12.5a1 1 0 0 0 1 .9h6a1 1 0 0 0 1-.9L17 7"/><path d="M10 11v6"/><path d="M14 11v6"/></symbol>
+  <symbol id="i-eye" viewBox="0 0 24 24"><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z"/><circle cx="12" cy="12" r="3"/></symbol>
+  <symbol id="i-ban" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M6 6l12 12"/></symbol>
+  <symbol id="i-crown" viewBox="0 0 24 24"><path d="M4 8l3.5 3L12 5l4.5 6L20 8l-1.5 10h-13z"/><path d="M5.5 20h13"/></symbol>
+  <symbol id="i-layers" viewBox="0 0 24 24"><path d="M12 3 3.5 7.5 12 12l8.5-4.5z"/><path d="M4 12.2 12 16.5l8-4.3"/><path d="M4 16.2 12 20.5l8-4.3"/></symbol>
+  <symbol id="i-boat" viewBox="0 0 24 24"><path d="M12 3.5v9"/><path d="M12 5.5c2.8 1 4.6 2.8 5.6 6H12z"/><path d="M4 16.5h16l-2.4 4H6.4z"/></symbol>
+  <symbol id="i-play" viewBox="0 0 24 24"><path d="M7 4.5v15l13-7.5z"/></symbol>
+  <symbol id="i-steps" viewBox="0 0 24 24"><path d="M4 7h4v4H4z"/><path d="M10 9h10"/><path d="M4 15h4v4H4z"/><path d="M10 17h10"/></symbol>
+  <symbol id="i-logout" viewBox="0 0 24 24"><path d="M14 4h4a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1h-4"/><path d="M10 12H3"/><path d="M6 8l-4 4 4 4"/></symbol>
+</svg>
+
+<div class="ambient"><div class="aurora"></div><div class="grid"></div><div class="grain"></div><div class="vignette"></div></div>
+
+<div class="root">
+
+  <!-- ============ CODE ============ -->
+  <section class="screen active" id="s-code">
+    <div class="code-wrap">
+      <div class="code-hero">
+        <div class="halo"></div>
+        <div class="logo-mark">Accès privé · membres uniquement</div>
+        <h1 class="bigtitle">LEBONPLAN<span class="sub">The Underground</span></h1>
+        <p class="subtitle">Un code. Un univers. Les meilleurs plans du web, réservés à celles et ceux qui savent où regarder.</p>
+        <div class="hero-tags">
+          <span class="pill"><span class="ic" data-ic="shield"></span> Sites reconnus &amp; officiels</span>
+          <span class="pill"><span class="ic" data-ic="bolt"></span> Failles &amp; codes promo</span>
+          <span class="pill"><span class="ic" data-ic="verified"></span> 100 % en ligne</span>
+        </div>
+      </div>
+      <div class="code-panel">
+        <div class="glass">
+          <div class="plabel">Entre ton code</div>
+          <div class="logo-mark" style="animation:none;opacity:1">Accès privé</div>
+          <h1 class="bigtitle" style="animation:none;opacity:1">LEBONPLAN<span class="sub">The Underground</span></h1>
+          <p class="subtitle" style="animation:none;opacity:1">Un code. Un univers. Les meilleurs plans, réservés à ceux qui savent.</p>
+          <div class="code-dots" id="dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
+          <div class="code-hint" id="codeHint">Code d'accès · 4 chiffres</div>
+          <div class="keypad" id="keypad">
+            <div class="key" data-k="1">1</div><div class="key" data-k="2">2</div><div class="key" data-k="3">3</div>
+            <div class="key" data-k="4">4</div><div class="key" data-k="5">5</div><div class="key" data-k="6">6</div>
+            <div class="key" data-k="7">7</div><div class="key" data-k="8">8</div><div class="key" data-k="9">9</div>
+            <div class="key fn" data-k="hint">indice</div><div class="key" data-k="0">0</div><div class="key fn" data-k="del" aria-label="effacer"><span class="ic" data-ic="check" style="display:none"></span>⌫</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ CONNEXION / INSCRIPTION (Supabase) ============ -->
+  <section class="screen" id="s-auth">
+    <div class="auth-wrap">
+      <div class="auth-card">
+        <div class="plabel" style="color:var(--green);font-size:12px;letter-spacing:.3em;text-transform:uppercase;font-weight:700;margin-bottom:14px">Bienvenue</div>
+        <h2 class="auth-title" id="authTitle">Connexion</h2>
+        <p class="auth-sub" id="authSub">Connecte-toi pour publier, sauvegarder et être alerté.</p>
+        <div class="auth-tabs">
+          <button class="auth-tab on" id="tabLogin" onclick="authMode('login')">Connexion</button>
+          <button class="auth-tab" id="tabSignup" onclick="authMode('signup')">Inscription</button>
+        </div>
+        <input id="authUser" class="al-input auth-in" placeholder="Pseudo" style="display:none">
+        <input id="authEmail" class="al-input auth-in" type="email" placeholder="Email" autocomplete="email">
+        <input id="authPass" class="al-input auth-in" type="password" placeholder="Mot de passe" autocomplete="current-password">
+        <div class="auth-err" id="authErr"></div>
+        <button class="btn" id="authBtn" onclick="authSubmit()">Se connecter</button>
+        <button class="btn ghost" style="margin-top:10px" onclick="authGuest()">Continuer en invité</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ APP ============ -->
+  <section class="screen" id="s-app">
+    <div class="app">
+      <aside class="side">
+        <div class="brand"><span class="b-dot"></span>LEBON<span>PLAN</span></div>
+        <div class="snav on" data-view="feed" onclick="showView('feed')"><span class="ic" data-ic="spark"></span> Les plans</div>
+        <div class="snav" data-view="explore" onclick="showView('explore')"><span class="ic" data-ic="compass"></span> Explorer</div>
+        <div class="snav" data-view="alerts" onclick="showView('alerts')"><span class="ic" data-ic="bell"></span> Alertes <span class="ncount" id="navAlerts">2</span></div>
+        <div class="snav" data-view="favoris" onclick="showView('favoris')"><span class="ic" data-ic="heart"></span> Favoris <span class="ncount" id="navFav" style="background:rgba(0,255,140,.14);color:var(--green)">2</span></div>
+        <div class="snav" data-view="profile" onclick="showView('profile')"><span class="ic" data-ic="user"></span> Mon profil</div>
+        <div class="snav" onclick="logout()"><span class="ic" data-ic="logout"></span> Se déconnecter</div>
+        <button class="btn publish" onclick="openPublish()"><span class="ic" data-ic="plus"></span> Publier un plan</button>
+        <div class="spacer"></div>
+        <div class="me" onclick="showView('profile')">
+          <div class="av">MX</div>
+          <div class="info"><b>Maxime_Deals</b><small>Niveau 7 · <span class="ic" data-ic="alert"></span> 2/3</small></div>
+        </div>
+      </aside>
+
+      <div class="main">
+        <div class="topbar">
+          <div class="appbar">
+            <div class="brand-m"><span class="b-dot"></span>LEBON<span>PLAN</span></div>
+            <div class="search"><span class="ic" data-ic="search"></span><input id="feedSearch" placeholder="Rechercher un plan, une marque, une catégorie…" oninput="onFeedSearch(this.value)"></div>
+            <div class="top-actions">
+              <div class="avatar" onclick="showView('profile')">MX<div class="badge">2</div></div>
+            </div>
+            <button class="icon-btn mobile-only" onclick="showView('favoris')" aria-label="Favoris"><span class="ic" data-ic="heart"></span></button>
+            <div class="avatar mobile-only" onclick="showView('profile')">MX<div class="badge">2</div></div>
+          </div>
+          <div class="cats" id="cats">
+            <div class="cat on" data-cat="" onclick="setCat(this,'')"><span class="ic" data-ic="spark"></span> Tout</div>
+            <div class="cat" data-cat="Failles" onclick="setCat(this,'Failles')"><span class="ic" data-ic="bolt"></span> Failles</div>
+            <div class="cat" data-cat="Alternatives" onclick="setCat(this,'Alternatives')"><span class="ic" data-ic="layers"></span> Alternatives</div>
+            <div class="cat" data-cat="Voyage" onclick="setCat(this,'Voyage')"><span class="ic" data-ic="voyage"></span> Voyage</div>
+            <div class="cat" data-cat="Codes promo" onclick="setCat(this,'Codes promo')"><span class="ic" data-ic="mode"></span> Codes promo</div>
+            <div class="cat" data-cat="Officiel" onclick="setCat(this,'Officiel')"><span class="ic" data-ic="shield"></span> Officiel</div>
+            <div class="cat" data-cat="Tech" onclick="setCat(this,'Tech')"><span class="ic" data-ic="tech"></span> Tech</div>
+            <div class="cat" data-cat="Cashback" onclick="setCat(this,'Cashback')"><span class="ic" data-ic="trend"></span> Cashback</div>
+          </div>
+        </div>
+
+        <div class="content">
+          <div class="view view-feed on">
+            <div class="feed-head"><h1>Les bons plans du moment</h1><p>En ligne uniquement · sites reconnus &amp; officiels, alternatives malines, codes promo &amp; failles de prix — jamais de vente entre particuliers</p></div>
+            <div class="feed" id="feed"></div>
+          </div>
+          <div class="view view-profile">
+            <div class="prof">
+              <div class="prof-head">
+                <div class="prof-av">MX</div>
+                <h2 class="prof-name">Maxime_Deals</h2>
+                <p class="prof-handle">@maxdeals · Chasseur de plans, niveau 7</p>
+                <div class="prof-stats">
+                  <div class="pstat"><b>128</b><span>Plans</span></div>
+                  <div class="pstat"><b>9,4k</b><span>Votes</span></div>
+                  <div class="pstat"><b>2,1k</b><span>Abonnés</span></div>
+                </div>
+              </div>
+              <div class="prof-inner">
+                <div class="trust">
+                  <div class="trust-top">
+                    <h4><span class="ic" data-ic="scale"></span> Fiabilité du profil</h4>
+                    <div class="status warn">FAUX PLANS · 2/3</div>
+                  </div>
+                  <div class="strikes"><div class="strike filled"></div><div class="strike filled"></div><div class="strike"></div></div>
+                  <p class="trust-note"><b>Attention :</b> 2 plans signalés comme faux ou obsolètes ont été supprimés. Au 3ᵉ signalement confirmé, ce profil sera <b>banni automatiquement</b>.</p>
+                </div>
+                <div class="sec-title">Badges débloqués</div>
+                <div class="badges">
+                  <div class="badge2"><div class="bico"><span class="ic" data-ic="trophy"></span></div><span>Top chasseur</span></div>
+                  <div class="badge2"><div class="bico"><span class="ic" data-ic="bolt"></span></div><span>Plan éclair</span></div>
+                  <div class="badge2"><div class="bico"><span class="ic" data-ic="spark"></span></div><span>100 plans</span></div>
+                  <div class="badge2 locked"><div class="bico"><span class="ic" data-ic="medal"></span></div><span>Légende</span></div>
+                  <div class="badge2 locked"><div class="bico"><span class="ic" data-ic="shield"></span></div><span>Zéro faux</span></div>
+                </div>
+                <div class="sec-title">Plans postés</div>
+                <div class="mini-deals">
+                  <div class="mini-deal"><div class="thumb"><span class="ic" data-ic="bolt"></span></div><div class="info"><h5>Erreur de prix : vol −80 %</h5><p>2 340 votes · il y a 3 j</p></div><div class="st live">EN LIGNE</div></div>
+                  <div class="mini-deal"><div class="thumb"><span class="ic" data-ic="mode"></span></div><div class="info"><h5>Code −30 % enseigne en ligne</h5><p>1 890 votes · il y a 5 j</p></div><div class="st live">EN LIGNE</div></div>
+                  <div class="mini-deal" style="opacity:.55"><div class="thumb"><span class="ic" data-ic="mode"></span></div><div class="info"><h5>Code promo expiré</h5><p>Signalé obsolète · il y a 6 j</p></div><div class="st dead">SUPPRIMÉ</div></div>
+                  <div class="mini-deal" style="opacity:.55"><div class="thumb"><span class="ic" data-ic="shield"></span></div><div class="info"><h5>Fausse « aide officielle »</h5><p>Signalé mensonge · il y a 8 j</p></div><div class="st dead">SUPPRIMÉ</div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ============ EXPLORER ============ -->
+          <div class="view view-explore">
+            <div class="feed-head"><h1>Explorer</h1><p>Trouve un plan par mot-clé, site reconnu ou catégorie — 100 % en ligne</p></div>
+            <div class="ex-search"><span class="ic" data-ic="search"></span><input id="exQuery" placeholder="Vol, code promo, aide officielle, faille…" oninput="renderExplore()"><button class="ex-clear" id="exClear" onclick="clearExplore()" style="display:none">Effacer</button></div>
+            <div class="sec-title">Catégories</div>
+            <div class="ex-cats" id="exCats"></div>
+            <div class="sec-title" id="exResTitle">Tous les plans</div>
+            <div class="feed" id="exGrid"></div>
+            <div class="empty" id="exEmpty" style="display:none"><span class="ic" data-ic="search"></span><b>Aucun plan trouvé</b><p>Essaie un autre mot-clé ou une autre catégorie.</p></div>
+          </div>
+
+          <!-- ============ ALERTES ============ -->
+          <div class="view view-alerts">
+            <div class="al-wrap">
+              <div class="feed-head"><h1>Alertes</h1><p>Sois prévenu dès qu'un plan correspond à ta recherche</p></div>
+              <div class="sec-title">Notifications</div>
+              <div class="notif-list" id="notifList"></div>
+              <div class="empty" id="notifEmpty" style="display:none;padding:32px 26px"><span class="ic" data-ic="bell"></span><b>Aucune notification</b><p>Crée une alerte : tu seras prévenu ici dès qu'un plan correspond.</p></div>
+              <div class="al-create">
+                <div class="kicker" style="margin-bottom:12px;display:block">Créer une alerte</div>
+                <input id="alKeyword" class="al-input" placeholder="Mot-clé — ex. vol, code promo, aide, faille…">
+                <div class="al-sublabel">Catégorie (optionnel)</div>
+                <div class="al-cats" id="alCats"></div>
+                <button class="btn" onclick="createAlert()"><span class="ic" data-ic="bell"></span> Créer l'alerte</button>
+              </div>
+              <div class="sec-title">Mes alertes actives</div>
+              <div class="al-list" id="alList"></div>
+              <div class="empty" id="alEmpty" style="display:none"><span class="ic" data-ic="bell"></span><b>Aucune alerte</b><p>Crée ta première alerte ci-dessus.</p></div>
+            </div>
+          </div>
+
+          <!-- ============ FAVORIS ============ -->
+          <div class="view view-favoris">
+            <div class="feed-head"><h1>Favoris</h1><p>Les plans que tu as sauvegardés</p></div>
+            <div class="feed" id="favGrid"></div>
+            <div class="empty" id="favEmpty" style="display:none"><span class="ic" data-ic="heart"></span><b>Aucun favori pour l'instant</b><p>Touche le cœur sur un plan pour le retrouver ici.</p><button class="btn" style="max-width:220px;margin:18px auto 0" onclick="showView('feed')">Voir les plans</button></div>
+          </div>
+        </div>
+      </div>
+
+      <aside class="rail">
+        <div class="rail-ad">
+          <div class="rv"><div class="shine"></div><span class="ic" data-ic="gift"></span></div>
+          <div class="rb"><span class="kicker">Publicité</span><b>Soutiens LEBONPLAN</b><small>Nos partenaires gardent le site gratuit pour tous.</small></div>
+        </div>
+        <div class="rail-card">
+          <h4><span class="ic" data-ic="crown"></span> Plan du moment</h4>
+          <p style="margin:0;font-size:13px;color:var(--muted);line-height:1.65">Le plan le mieux classé passe en tête avec un badge doré. Le classement dépend de ses <b style="color:var(--ink)">vues</b> et du nombre de membres qui l'ont <b style="color:var(--green)">« utilisé et validé »</b>.</p>
+        </div>
+        <div class="rail-card">
+          <h4><span class="ic" data-ic="trend"></span> Tendances maintenant</h4>
+          <div class="trend"><span class="rank">1</span><div class="th"><span class="ic" data-ic="bolt"></span></div><div class="ti"><b>Erreur prix : vol −80 %</b><small>Faille · à saisir vite</small></div><span class="tv">22k</span></div>
+          <div class="trend"><span class="rank">2</span><div class="th"><span class="ic" data-ic="voyage"></span></div><div class="ti"><b>Vol A/R Europe 29 €</b><small>Comparateur reconnu</small></div><span class="tv">15k</span></div>
+          <div class="trend"><span class="rank">3</span><div class="th"><span class="ic" data-ic="shield"></span></div><div class="ti"><b>Aide transport −50 %</b><small>Officiel · −26 ans</small></div><span class="tv">13k</span></div>
+          <div class="trend"><span class="rank">4</span><div class="th"><span class="ic" data-ic="mode"></span></div><div class="ti"><b>Cumul code −45 %</b><small>Astuce vérifiée</small></div><span class="tv">8,8k</span></div>
+        </div>
+        <div class="rail-card">
+          <h4><span class="ic" data-ic="trophy"></span> Top chasseurs</h4>
+          <div class="lead"><span class="lrank">1</span><div class="lav">SB</div><div class="li"><b>Sarah_B</b><small>412 plans validés</small></div></div>
+          <div class="lead"><span class="lrank">2</span><div class="lav">TD</div><div class="li"><b>TechDealer</b><small>388 plans validés</small></div></div>
+          <div class="lead"><span class="lrank">3</span><div class="lav">VM</div><div class="li"><b>VoyageMalin</b><small>301 plans validés</small></div></div>
+        </div>
+        <div class="rail-card">
+          <h4><span class="ic" data-ic="scale"></span> Règle d'or</h4>
+          <p style="margin:0;font-size:13px;color:var(--muted);line-height:1.65">Un plan faux ou périmé ? <b style="color:var(--green)">Signale-le.</b> Il est supprimé et son auteur averti. Au 3ᵉ faux plan → <b style="color:var(--danger)">bannissement automatique.</b></p>
+        </div>
+      </aside>
+
+      <div class="tabbar">
+        <div class="tab on" data-view="feed" onclick="showView('feed')"><span class="ic" data-ic="spark"></span>Plans</div>
+        <div class="tab" data-view="explore" onclick="showView('explore')"><span class="ic" data-ic="compass"></span>Explorer</div>
+        <div class="tab fab" onclick="openPublish()"><span class="ic" data-ic="plus"></span></div>
+        <div class="tab" data-view="alerts" onclick="showView('alerts')"><span class="ic" data-ic="bell"><span class="tcount" id="tabAlerts">0</span></span>Alertes</div>
+        <div class="tab" data-view="profile" onclick="showView('profile')"><span class="ic" data-ic="user"></span>Profil</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- REPORT SHEET -->
+  <div class="sheet-bg" id="reportSheet">
+    <div class="sheet">
+      <div class="grip"></div>
+      <h3>Bannir ce plan</h3>
+      <p>Un plan banni et confirmé est retiré automatiquement. Son auteur est averti et reçoit un point « faux plan » (bannissement du profil au 3ᵉ).</p>
+      <div class="reason">
+        <button onclick="confirmReport('mensonge')"><span class="rico"><span class="ic" data-ic="alert"></span></span> Mensonge ou fausse promo</button>
+        <button onclick="confirmReport('obsolète')"><span class="rico"><span class="ic" data-ic="clock"></span></span> Plan expiré ou obsolète</button>
+        <button onclick="confirmReport('arnaque')"><span class="rico"><span class="ic" data-ic="shield"></span></span> Arnaque ou lien douteux</button>
+      </div>
+      <button class="btn ghost" onclick="closeSheet()">Annuler</button>
+    </div>
+  </div>
+
+  <!-- PUB À L'OUVERTURE D'UN PLAN -->
+  <div class="sheet-bg" id="preDealAd">
+    <div style="width:100%;max-width:360px;padding:0 18px" onclick="event.stopPropagation()">
+      <div class="ad-card">
+        <div class="ad-tag" style="position:static;padding:12px 16px 0">Publicité · soutient LEBONPLAN</div>
+        <div class="ad-visual" style="height:170px"><div class="shine"></div><div class="bg-ic"><span class="ic" data-ic="shield"></span></div></div>
+        <div class="ad-body">
+          <div class="kicker">Sponsorisé</div>
+          <h3>Un instant pour soutenir le site</h3>
+          <p>Cette courte publicité garde LEBONPLAN 100 % gratuit. Tu accèdes au plan dans <b id="preAdCd">5</b> s.</p>
+          <button class="btn" id="preAdBtn" style="opacity:.4;pointer-events:none" onclick="continuePreDealAd()">Voir le plan</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- INTERSTITIEL 2 MIN -->
+  <div class="sheet-bg" id="adSheet">
+    <div style="width:100%;max-width:360px;padding:0 18px" onclick="event.stopPropagation()">
+      <div class="ad-card">
+        <div class="ad-tag" style="position:static;padding:12px 16px 0">Publicité</div>
+        <div class="ad-visual" style="height:170px"><div class="shine"></div><div class="bg-ic"><span class="ic" data-ic="gift"></span></div></div>
+        <div class="ad-body">
+          <h3>Merci d'être là</h3>
+          <p>Cette publicité garde LEBONPLAN gratuit pour tous. Elle se ferme dans <b id="adSheetCd">5</b> s.</p>
+          <button class="btn" id="adSheetClose" style="opacity:.4;pointer-events:none" onclick="closeAdSheet()">Continuer</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FICHE DU BON PLAN -->
+  <div class="sheet-bg" id="dealSheet">
+    <div class="sheet deal-sheet">
+      <div class="grip"></div>
+      <button class="ds-close" onclick="closeDeal()" aria-label="Fermer">✕</button>
+      <div id="dealBody"></div>
+    </div>
+  </div>
+
+  <!-- PUBLIER UN PLAN -->
+  <div class="sheet-bg" id="pubSheet">
+    <div class="sheet">
+      <div class="grip"></div>
+      <h3>Publier un bon plan</h3>
+      <p>Uniquement des plans <b>en ligne</b> : sites reconnus, offres officielles, alternatives légales moins chères, codes promo ou failles de prix. Pas de vente entre particuliers.</p>
+      <input id="pubTitle" class="al-input" placeholder="Titre — ex. Erreur de prix, code promo, aide officielle…">
+      <div class="pub-row">
+        <input id="pubNow" class="al-input" placeholder="Prix ou code — ex. 29 € ou MEMBRE30">
+        <input id="pubOld" class="al-input" placeholder="Prix barré — ex. 79 € (optionnel)">
+      </div>
+      <input id="pubDisc" class="al-input" placeholder="Réduction — ex. −50 %, Code, Cashback…">
+      <input id="pubLink" class="al-input" placeholder="Lien du site reconnu / officiel">
+      <div class="al-sublabel">Catégorie</div>
+      <div class="al-cats" id="pubCats"></div>
+      <textarea id="pubDesc" class="al-input" rows="2" placeholder="Décris le plan et le site concerné en une phrase…"></textarea>
+      <textarea id="pubSteps" class="al-input" rows="3" placeholder="Comment en profiter — une étape par ligne (optionnel)"></textarea>
+      <input id="pubVideo" class="al-input" placeholder="Lien vidéo explicative (YouTube, Vimeo…) — optionnel">
+      <button class="btn" onclick="submitPublish()"><span class="ic" data-ic="plus"></span> Publier le plan</button>
+      <button class="btn ghost" onclick="closePublish()" style="margin-top:10px">Annuler</button>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"><div class="ico"><span class="ic" data-ic="check"></span></div><div><b id="toastTitle">Titre</b><small id="toastMsg">message</small></div></div>
+
+  <!-- Voile d'accès (plein écran, au-dessus de tout) -->
+  <div class="unlock-burst" id="burst"><b>ACCÈS AUTORISÉ</b></div>
+</div>
+
+
+<script>
+/* icônes */
+function iconSVG(id){return '<svg class="svg-ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-'+id+'"></use></svg>';}
+function hydrate(root){(root||document).querySelectorAll('[data-ic]').forEach(el=>{if(!el.dataset.done){el.innerHTML=iconSVG(el.dataset.ic);el.dataset.done=1;}});}
+
+/* nav écrans */
+let current='s-code';
+function go(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active'); current=id;
+  if(id==='s-app'){ armFeed(); startSessionTimer(); }
+}
+let currentView='feed';
+function showView(v){
+  if(current!=='s-app') go('s-app');
+  currentView=v;
+  document.querySelectorAll('.view').forEach(x=>x.classList.remove('on'));
+  const el=document.querySelector('.view-'+v); if(el) el.classList.add('on');
+  document.querySelectorAll('.snav[data-view]').forEach(n=>n.classList.toggle('on',n.dataset.view===v));
+  document.querySelectorAll('.tab[data-view]').forEach(t=>t.classList.toggle('on',t.dataset.view===v));
+  document.querySelector('.main').classList.toggle('nofeedbar',v!=='feed');
+  if(v==='feed') renderFeed();
+  if(v==='explore') renderExplore();
+  if(v==='favoris') renderFav();
+  if(v==='alerts'){ renderAlerts(); renderNotifs(); markNotifsRead(); }
+  const c=document.querySelector('.content'); if(c) c.scrollTop=0;
+}
+
+/* code */
+let code=''; const DEMO_CODE='2024';
+const dots=document.querySelectorAll('#dots .dot'); const hint=document.getElementById('codeHint');
+function renderDots(){ dots.forEach((d,i)=>{d.classList.toggle('on',i<code.length);d.classList.remove('err');}); }
+document.getElementById('keypad').addEventListener('click',e=>{
+  const k=e.target.closest('.key'); if(!k)return; const v=k.dataset.k;
+  if(v==='del'){ code=code.slice(0,-1); renderDots(); return; }
+  if(v==='hint'){ hint.textContent="Indice : l'année où tout a commencé… 2024"; hint.classList.remove('bad'); return; }
+  if(code.length>=4) return; code+=v; renderDots();
+  if(code.length===4) setTimeout(checkCode,180);
+});
+function checkCode(){
+  const bad=()=>{ dots.forEach(d=>d.classList.add('err')); document.getElementById('dots').classList.add('shake');
+    hint.textContent="Code invalide. Réessaie."; hint.classList.add('bad');
+    setTimeout(()=>{code='';renderDots();document.getElementById('dots').classList.remove('shake');},600); };
+  const proceed=()=>{
+    document.getElementById('burst').classList.add('go');
+    setTimeout(()=>{ afterUnlock(); },620);                                 // bascule DERRIÈRE le voile encore opaque
+    setTimeout(()=>{ document.getElementById('burst').classList.remove('go'); code='';renderDots();hint.textContent="Code d'accès · 4 chiffres";hint.classList.remove('bad'); },1750);
+  };
+  if(window.LBP&&LBP.enabled){                                              // vérifie via la table access_codes
+    hint.textContent="Vérification…"; hint.classList.remove('bad');
+    LBP.api.verifyAccessCode(code).then(ok=> ok?proceed():bad()).catch(()=>bad());
+  } else {                                                                  // démo : code officiel ou tout code à 4 chiffres
+    if(code===DEMO_CODE||code.length===4) proceed(); else bad();
+  }
+}
+function afterUnlock(){
+  if(window.LBP&&LBP.enabled && !LBP._user){ go('s-auth'); }               // pas connecté → écran de connexion
+  else { go('s-app'); showView('feed'); }                                   // démo ou déjà connecté → les plans
+}
+
+/* ===== AUTHENTIFICATION ===== */
+let authCurMode='login';
+function authMode(m){
+  authCurMode=m;
+  document.getElementById('tabLogin').classList.toggle('on',m==='login');
+  document.getElementById('tabSignup').classList.toggle('on',m==='signup');
+  document.getElementById('authUser').style.display = m==='signup'?'':'none';
+  document.getElementById('authTitle').textContent = m==='signup'?'Inscription':'Connexion';
+  document.getElementById('authBtn').textContent = m==='signup'?'Créer mon compte':'Se connecter';
+  document.getElementById('authSub').textContent = m==='signup'?'Crée ton compte pour publier et suivre tes plans.':'Connecte-toi pour publier, sauvegarder et être alerté.';
+  document.getElementById('authPass').setAttribute('autocomplete', m==='signup'?'new-password':'current-password');
+  authErr('');
+}
+function authErr(m){ document.getElementById('authErr').textContent=m||''; }
+function enterApp(){ go('s-app'); showView('feed'); }
+function authTr(e){ const m=(e&&e.message)||''; if(/Invalid login/i.test(m))return 'Email ou mot de passe incorrect.'; if(/already registered|already been/i.test(m))return 'Cet email a déjà un compte.'; if(/confirm/i.test(m))return 'Vérifie ta boîte mail pour confirmer ton compte, puis connecte-toi.'; if(/at least 6/i.test(m))return 'Mot de passe : 6 caractères minimum.'; return m||"Erreur d'authentification."; }
+function authSubmit(){
+  if(!(window.LBP&&LBP.enabled)){ enterApp(); return; }                    // démo : pas d'auth réelle
+  const email=val('authEmail'), pass=val('authPass'), uname=val('authUser');
+  if(!email||!pass){ authErr('Renseigne ton email et ton mot de passe.'); return; }
+  authErr(''); const btn=document.getElementById('authBtn'); btn.disabled=true; btn.style.opacity=.6;
+  const pr = authCurMode==='signup' ? LBP.api.signUp(email,pass,uname||email.split('@')[0]) : LBP.api.signIn(email,pass);
+  pr.then(async(r)=>{
+    if(authCurMode==='signup' && r && !r.session){ authErr('Compte créé ! Vérifie ta boîte mail pour confirmer, puis connecte-toi.'); authMode('login'); return; }
+    await LBP.hydrate(); enterApp();
+  }).catch(e=>authErr(authTr(e))).finally(()=>{ btn.disabled=false; btn.style.opacity=1; });
+}
+function authGuest(){
+  if(!(window.LBP&&LBP.enabled)){ enterApp(); return; }
+  LBP.api.signInAnonymous().then(async()=>{ await LBP.hydrate(); enterApp(); }).catch(e=>authErr(authTr(e)));
+}
+function logout(){ if(window.LBP&&LBP.enabled){ LBP.api.signOut().then(()=>location.reload()); } else location.reload(); }
+
+/* pub entrée */
+let cdTimer=null;
+function startAdCountdown(){
+  let t=5; const ring=document.getElementById('cdRing'),txt=document.getElementById('cdTxt'),cdBox=document.getElementById('cdBox'),skip=document.getElementById('skipBtn');
+  skip.classList.remove('show'); cdBox.style.display='flex'; txt.textContent=t; ring.style.strokeDashoffset=69;
+  clearInterval(cdTimer);
+  cdTimer=setInterval(()=>{t--;txt.textContent=Math.max(t,0);ring.style.strokeDashoffset=69-(69*((5-t)/5));
+    if(t<=0){clearInterval(cdTimer);cdBox.style.display='none';skip.classList.add('show');}},1000);
+}
+
+/* ===== DONNÉES ===== */
+const CATS=[{key:'Failles',ic:'bolt'},{key:'Alternatives',ic:'layers'},{key:'Voyage',ic:'voyage'},{key:'Codes promo',ic:'mode'},{key:'Officiel',ic:'shield'},{key:'Tech',ic:'tech'},{key:'Cashback',ic:'trend'}];
+function catIc(c){const x=CATS.find(k=>k.key===c);return x?x.ic:'spark';}
+/* Visuel choisi automatiquement selon ce que le client saisit (titre + description) */
+function pickIcon(text,cat){
+  const t=(text||'').toLowerCase();
+  const rules=[
+    [/erreur de prix|faille|bug|astuce|cumul|glitch/,'bolt'],
+    [/alternative|concurrent|[ée]quivalent|clone|moins cher que|comme /,'layers'],
+    [/bateau|croisi[èe]re|ferry|voilier|nautique|p[êe]che|kayak|paddle/,'boat'],
+    [/vol|avion|billet|a[ée]rien|aller.?retour|escapade|a[ée]roport/,'voyage'],
+    [/h[oô]tel|nuit|s[ée]jour|spa|resort|auberge|logement|gîte|camping|location/,'voyage'],
+    [/\bcode\b|promo|coupon|r[ée]duction|bon d|remise/,'mode'],
+    [/cashback|rembours|diff[ée]r[ée]/,'trend'],
+    [/aide|officiel|prime|subvention|caf\b|[ée]tat|gouvern|transport|allocation|\bbourse\b/,'shield'],
+    [/stream|svod|vod|s[ée]rie|film|musique|cloud|stockage|saas|logiciel|appli|abonnement|reconditionn|smartphone|t[ée]l[ée]phone|casque|[ée]couteur|ordinateur|\bpc\b|console|[ée]cran|\btv\b/,'tech'],
+  ];
+  for(const r of rules){ if(r[0].test(t)) return r[1]; }
+  return catIc(cat);
+}
+const DEALS=[
+  {id:1,user:'GlitchHunter',av:'GH',cat:'Failles',icon:'bolt',disc:'−80%',exp:'Corrigé bientôt',title:'Erreur de prix : vol long-courrier à −80 %',now:'149 €',old:'740 €',desc:"Erreur tarifaire repérée sur un comparateur reconnu. À réserver vite, elle sera corrigée.",tags:['Erreur de prix','Comparateur reconnu','Flash'],votes:3120,views:22000,validated:820,verified:true,video:'https://www.youtube.com/watch?v=aqz-KE-bpKQ'},
+  {id:2,user:'CodeMaster',av:'CM',cat:'Codes promo',icon:'mode',disc:'Code',exp:'48 h',title:'Code −30 % dès le premier achat',now:'MEMBRE30',old:'',desc:"Code de bienvenue valable sur tout le site d'une enseigne en ligne, cumulable avec la livraison offerte.",tags:['Code promo','Cumulable','Première commande'],votes:1890,views:9200,validated:240,verified:true},
+  {id:3,user:'EvasionPro',av:'EP',cat:'Voyage',icon:'voyage',disc:'−40%',exp:'Ce week-end',title:'Nuit hôtel 4★ −40 % — plateforme officielle',now:'99 €',old:'165 €',desc:"Offre flash sur une plateforme de réservation reconnue, annulation gratuite incluse.",tags:['Site reconnu','Annulation gratuite','4 étoiles'],votes:1204,views:7400,validated:190,verified:true},
+  {id:4,user:'AideConso',av:'AC',cat:'Officiel',icon:'shield',disc:'−50%',exp:'Ce mois-ci',title:'Aide officielle : abonnement transport −50 % (−26 ans)',now:'−50 %',old:'',desc:"Dispositif officiel : réduction sur les abonnements de transport pour les moins de 26 ans. Lien vers le site officiel.",tags:['Organisme officiel','−26 ans','Officiel'],votes:2100,views:12800,validated:410,verified:true},
+  {id:5,user:'RecoCertif',av:'RC',cat:'Tech',icon:'tech',disc:'−38%',exp:'2 jours',title:'Smartphone reconditionné certifié −38 %',now:'399 €',old:'649 €',desc:"Reconditionné grade A chez un revendeur agréé, garantie 2 ans. Achat 100 % en ligne.",tags:['Reconditionné certifié','Garantie 2 ans','En ligne'],votes:1120,views:5400,validated:180,verified:true},
+  {id:6,user:'CashDeal',av:'CD',cat:'Cashback',icon:'trend',disc:'15 %',exp:'Permanent',title:'Cashback 15 % via plateforme reconnue',now:'15 %',old:'',desc:"Cumule ta remise habituelle avec 15 % de cashback via une plateforme de confiance.",tags:['Cashback','Cumulable','Plateforme reconnue'],votes:756,views:3300,validated:95,verified:false},
+  {id:7,user:'BugFinder',av:'BF',cat:'Failles',icon:'bolt',disc:'Astuce',exp:'Ce mois-ci',title:'Faille : cumul code + parrainage = −45 %',now:'−45 %',old:'',desc:"Combine le code de bienvenue et le parrainage sur un site reconnu pour empiler les remises.",tags:['Cumul de codes','Astuce','Vérifié'],votes:1400,views:8800,validated:260,verified:true},
+  {id:8,user:'VolMalin',av:'VM',cat:'Voyage',icon:'voyage',disc:'−45%',exp:'48 h',title:'Vol A/R Europe dès 29 € — comparateur reconnu',now:'29 €',old:'79 €',desc:"Tarif repéré sur plusieurs dates via un comparateur officiel. À réserver avant correction.",tags:['Comparateur reconnu','Printemps','Flash'],votes:3120,views:15200,validated:520,verified:true},
+  {id:9,user:'PromoRoom',av:'PR',cat:'Codes promo',icon:'mode',disc:'Livr. off.',exp:'Ce dimanche',title:'Code livraison offerte + −15 % cumulables',now:'BIENVENUE15',old:'',desc:"Deux codes valables ensemble sur une boutique en ligne reconnue.",tags:['Livraison offerte','Cumulable','Code promo'],votes:410,views:2400,validated:60,verified:false},
+  {id:10,user:'PrimeInfo',av:'PI',cat:'Officiel',icon:'shield',disc:'Prime',exp:'Cette année',title:'Prime officielle : remboursement 50 % mobilité',now:'−50 %',old:'',desc:"Dispositif d'aide officiel pour la mobilité douce. Démarche 100 % en ligne sur le site officiel.",tags:['Prime officielle','Mobilité','Officiel'],votes:870,views:3300,validated:130,verified:true},
+  {id:11,user:'StreamDeal',av:'SD',cat:'Tech',icon:'tech',disc:'3 mois',exp:'5 jours',title:'Streaming — 3 mois offerts (offre officielle)',now:'0 €',old:'29 €',desc:"Offre de bienvenue officielle sur un service reconnu. Sans engagement.",tags:['Offre officielle','3 mois','Sans engagement'],votes:530,views:4200,validated:140,verified:true},
+  {id:12,user:'BoxRemboo',av:'BR',cat:'Cashback',icon:'trend',disc:'25 €',exp:'Ce mois-ci',title:'Remboursement différé 25 € sur ta box internet',now:'25 €',old:'',desc:"Offre de remboursement officielle d'un opérateur reconnu, à activer en ligne.",tags:['Remboursement','Opérateur reconnu','En ligne'],votes:690,views:2400,validated:55,verified:false},
+  {id:13,user:'StreamMalin',av:'SM',cat:'Alternatives',icon:'layers',disc:'−65%',exp:'En ce moment',title:'Alternative streaming : même concept, 65 % moins cher',now:'3,99 €',old:'11,99 €',desc:"Plateforme indépendante et légale qui reprend le concept des grands services de streaming, bien moins chère. Sans engagement.",tags:['Alternative légale','Même concept','Sans engagement'],votes:1600,views:11200,validated:340,verified:true},
+  {id:14,user:'AltFinder',av:'AF',cat:'Alternatives',icon:'layers',disc:'−70%',exp:'Cette semaine',title:'Alternative au cloud : 2 To à −70 % vs le leader',now:'2,99 €',old:'9,99 €',desc:"Service de stockage cloud reconnu qui offre le même usage que le leader du marché, à prix cassé.",tags:['Même usage','Reconnu','−70%'],votes:720,views:4100,validated:120,verified:true},
+];
+
+/* ===== ÉTAT (le seul endroit à remplacer par Supabase pour l'MVP) =====
+   Chaque set/tableau ci-dessous = une table côté serveur. Les fonctions
+   createAlert / toggleFav / validateDeal / submitPublish sont les points
+   où l'on branchera les appels Supabase (insert/update/select). */
+const favorites=new Set([1,4]);
+const validatedByUser=new Set();
+const voteState={};
+let currentCat='', feedQuery='', exCat='', alSelCat='', pubSelCat='';
+let alerts=[{id:1,keyword:'vol',cat:'Voyage',active:true},{id:2,keyword:'',cat:'Failles',active:true}];
+let notifications=[];
+let alSeq=100, notifSeq=1000, dealSeq=14, inited=false;
+
+/* ===== RÈGLE PLAN DU MOMENT (vues × validations) ===== */
+function planScore(d){ return d.views + d.validated*25 + d.votes*2; }
+function computeMoment(){ let best=DEALS[0]; DEALS.forEach(d=>{ if(planScore(d)>planScore(best)) best=d; }); return best.id; }
+let momentId=computeMoment();
+function fmtViews(n){ return n>=1000?(n/1000).toFixed(1).replace('.',',')+'k':(''+n); }
+function planBadge(d){
+  if(d.id===momentId) return {label:'Plan du moment',cls:'b-gold',ic:'crown'};
+  if(d.validated>=350 || d.views>=12000) return {label:'Pépite validée',cls:'b-hot',ic:'medal'};
+  if(d.validated>=150 || d.views>=6000) return {label:'Validé par la commu',cls:'b-green',ic:'verified'};
+  if(d.views>=3000) return {label:'En hausse',cls:'b-green',ic:'trend'};
+  return {label:'Nouveau',cls:'b-dim',ic:'spark'};
+}
+
+/* ===== FILTRE ===== */
+function filterDeals(cat,q){
+  q=(q||'').trim().toLowerCase();
+  return DEALS.filter(d=>(!cat||d.cat===cat) && (!q||(d.title+' '+d.tags.join(' ')+' '+d.cat+' '+d.user).toLowerCase().includes(q)));
+}
+function fmtK(n){return (n/1000).toFixed(1).replace('.',',')+'k';}
+/* Aperçu du site à partir du lien collé par le membre.
+   Maquette : on affiche le logo/favicon réel du domaine.
+   MVP (côté serveur) : remplacer faviconUrl(dom) par l'og:image de la page. */
+function domainOf(url){ try{ let u=(url||'').trim(); if(!u) return ''; if(!/^https?:\/\//i.test(u)) u='https://'+u; return new URL(u).hostname.replace(/^www\./,''); }catch(e){ return ''; } }
+function faviconUrl(dom){ return 'https://www.google.com/s2/favicons?domain='+dom+'&sz=128'; }
+
+/* ===== CARTE ===== */
+function cardHTML(d,i){
+  const fav=favorites.has(d.id)?' on':''; const nv=voteState[d.id]||0;
+  const vd=validatedByUser.has(d.id); const b=planBadge(d);
+  return `
+    <div class="flag-tape">${iconSVG('alert')} Plan banni — retrait en cours</div>
+    <button class="save${fav}" onclick="toggleFav(${d.id},this,event)" aria-label="Sauvegarder">${iconSVG('heart')}</button>
+    <div class="top"><div class="mini-av">${d.av}</div>
+      <div class="who">Posté par <b>${d.user}</b><br>il y a ${(i%9)+1} h</div>
+      ${d.verified?`<div class="verif">${iconSVG('verified')} Fiable</div>`:`<div class="verif new">${iconSVG('clock')} Récent</div>`}</div>
+    <div class="deal-media">
+      <div class="auto-viz"><span class="av-glow"></span>${iconSVG(d.icon)}</div>
+      ${d.domain?`<div class="site-src"><img class="fav" src="${faviconUrl(d.domain)}" alt="" onerror="this.remove()">${iconSVG('link')} ${d.domain}</div>`:``}
+      <div class="expire">${iconSVG('clock')} ${d.exp}</div><div class="discount">${d.disc}</div></div>
+    <div class="deal-body">
+      <span class="plan-badge ${b.cls}">${iconSVG(b.ic)} ${b.label}</span>
+      <h3>${d.title}</h3>
+      <div class="price"><span class="now">${d.now}</span><span class="old">${d.old}</span></div>
+      <p class="desc">${d.desc}</p>
+      <div class="tags">${d.tags.map(t=>`<span class="tag">${t}</span>`).join('')}</div>
+      <div class="deal-meta">
+        <span>${iconSVG('eye')} <b>${fmtViews(d.views)}</b> vues</span>
+        <span>${iconSVG('verified')} <b class="valcnt">${d.validated}</b> validations</span>
+      </div>
+    </div>
+    <div class="actions">
+      <button class="act-btn validate${vd?' done':''}" onclick="validateDeal(${d.id},this)">${iconSVG('check')} <span>${vd?'Validé':'Utilisé et validé'}</span></button>
+      <button class="act-btn open" onclick="openDeal(${d.id})">${iconSVG('eye')} <span>Ouvrir</span></button>
+      <button class="act-btn ban" onclick="openBan(${d.id},this)">${iconSVG('ban')} <span>Ban</span></button>
+    </div>`;
+}
+function renderGrid(el,list){
+  el.innerHTML='';
+  list.forEach((d,i)=>{const c=document.createElement('div');c.className='card'+(d.id===momentId?' moment':'');c.dataset.id=d.id;c.style.animationDelay=(i*0.06)+'s';c.innerHTML=cardHTML(d,i);el.appendChild(c);});
+}
+function rerenderCurrent(){ if(currentView==='feed')renderFeed(); else if(currentView==='explore')renderExplore(); else if(currentView==='favoris')renderFav(); updateCounts(); }
+
+/* ===== FEED ===== */
+function armFeed(){ if(!inited){inited=true;buildExTiles();buildAlCats();buildPubCats();alerts.forEach(fireAlertOnCreate);} renderFeed(); updateCounts(); }
+function renderFeed(){ renderGrid(document.getElementById('feed'),filterDeals(currentCat,feedQuery)); }
+function setCat(el,cat){ currentCat=cat; document.querySelectorAll('#cats .cat').forEach(c=>c.classList.remove('on')); el.classList.add('on'); renderFeed(); }
+function onFeedSearch(v){ feedQuery=v; renderFeed(); }
+
+/* ===== VOTE ===== */
+function vote(id,dir,btn){
+  const prev=voteState[id]||0; const next=prev===dir?0:dir; voteState[id]=next;
+  const wrap=btn.parentElement; wrap.querySelector('.up').classList.toggle('on',next===1); wrap.querySelector('.down').classList.toggle('on',next===-1);
+  const base=DEALS.find(d=>d.id===id).votes; const cnt=wrap.querySelector('.cnt'); cnt.textContent=fmtK(base+next); cnt.animate([{transform:'scale(1.35)'},{transform:'scale(1)'}],{duration:220});
+}
+
+/* ===== FAVORIS ===== */
+function toggleFav(id,btn,ev){
+  if(ev) ev.stopPropagation();
+  if(favorites.has(id)){favorites.delete(id); toast('good','Retiré des favoris','Ce plan a été retiré de tes favoris.');}
+  else{favorites.add(id); toast('good','Ajouté aux favoris','Retrouve-le dans l\'onglet Favoris.');}
+  document.querySelectorAll('.card[data-id=\"'+id+'\"] .save').forEach(b=>b.classList.toggle('on',favorites.has(id)));
+  if(window.LBP&&LBP.enabled) LBP.api.setFavorite(id,favorites.has(id));
+  updateCounts();
+  if(currentView==='favoris') renderFav();
+}
+function renderFav(){
+  const list=DEALS.filter(d=>favorites.has(d.id));
+  const grid=document.getElementById('favGrid'),empty=document.getElementById('favEmpty');
+  if(list.length){grid.style.display='';empty.style.display='none';renderGrid(grid,list);}
+  else{grid.style.display='none';grid.innerHTML='';empty.style.display='';}
+}
+
+/* ===== EXPLORER ===== */
+function buildExTiles(){
+  const el=document.getElementById('exCats'); el.innerHTML='';
+  CATS.forEach(c=>{
+    const n=DEALS.filter(d=>d.cat===c.key).length;
+    const t=document.createElement('div'); t.className='ex-tile'+(exCat===c.key?' on':'');
+    t.onclick=()=>{exCat=(exCat===c.key?'':c.key);buildExTiles();renderExplore();};
+    t.innerHTML=`<div class="ti">${iconSVG(c.ic)}</div><div class="tt"><b>${c.key}</b><small>${n} plan${n>1?'s':''}</small></div>`;
+    el.appendChild(t);
+  });
+}
+function renderExplore(){
+  const q=document.getElementById('exQuery').value;
+  document.getElementById('exClear').style.display=(q||exCat)?'':'none';
+  const list=filterDeals(exCat,q);
+  const grid=document.getElementById('exGrid'),empty=document.getElementById('exEmpty');
+  document.getElementById('exResTitle').textContent=(exCat||'Tous les plans')+' · '+list.length+' résultat'+(list.length>1?'s':'');
+  if(list.length){grid.style.display='';empty.style.display='none';renderGrid(grid,list);}
+  else{grid.style.display='none';grid.innerHTML='';empty.style.display='';}
+}
+function clearExplore(){ exCat=''; document.getElementById('exQuery').value=''; buildExTiles(); renderExplore(); }
+
+/* ===== ALERTES ===== */
+function buildAlCats(){
+  const el=document.getElementById('alCats'); el.innerHTML='';
+  CATS.forEach(c=>{
+    const chip=document.createElement('div'); chip.className='al-chip'+(alSelCat===c.key?' on':'');
+    chip.onclick=()=>{alSelCat=(alSelCat===c.key?'':c.key);buildAlCats();};
+    chip.innerHTML=`${iconSVG(c.ic)} ${c.key}`; el.appendChild(chip);
+  });
+}
+function alMatch(a){ return filterDeals(a.cat,a.keyword).length; }
+function matchesAlert(d,a){ const q=(a.keyword||'').trim().toLowerCase(); return (!a.cat||d.cat===a.cat) && (!q||(d.title+' '+d.tags.join(' ')+' '+d.cat+' '+d.user).toLowerCase().includes(q)); }
+function alLabel(a){ return a.keyword?('« '+a.keyword+' »'):(a.cat||'tous les plans'); }
+
+/* ===== NOTIFICATIONS (moteur de règles) ===== */
+function notify(o){ notifications.unshift({id:++notifSeq,read:false,...o}); updateCounts(); }
+function fireAlertOnCreate(a){                       // évaluation immédiate à la création
+  const m=DEALS.filter(d=>matchesAlert(d,a));
+  if(m.length) notify({icon:a.keyword?'search':catIc(a.cat),title:'Alerte activée',text:m.length+' plan'+(m.length>1?'s':'')+' correspond'+(m.length>1?'ent':'')+' déjà à '+alLabel(a)+'.',dealId:m[0].id,alertId:a.id});
+  else notify({icon:'bell',title:'Alerte activée',text:'Aucun plan pour '+alLabel(a)+" pour l'instant — tu seras prévenu dès qu'un tombe.",alertId:a.id});
+}
+function evaluateNewDeal(d){                          // déclenchement quand un plan est publié
+  alerts.filter(a=>a.active && matchesAlert(d,a)).forEach(a=>{
+    notify({icon:catIc(d.cat),title:'Nouveau plan pour toi',text:'« '+d.title+' » correspond à ton alerte '+alLabel(a)+'.',dealId:d.id,alertId:a.id});
+  });
+}
+function renderNotifs(){
+  const el=document.getElementById('notifList'),empty=document.getElementById('notifEmpty'); if(!el)return; el.innerHTML='';
+  empty.style.display=notifications.length?'none':'';
+  notifications.forEach(n=>{
+    const it=document.createElement('div'); it.className='notif'+(n.read?'':' unread');
+    it.innerHTML=`<div class="nic">${iconSVG(n.icon||'bell')}</div><div class="ninfo"><b>${n.title}</b><small>${n.text}</small></div>${n.dealId?`<button class="notif-go" onclick="openFromNotif(${n.dealId})">Voir</button>`:''}`;
+    el.appendChild(it);
+  });
+}
+function markNotifsRead(){ notifications.forEach(n=>n.read=true); if(window.LBP&&LBP.enabled)LBP.api.markNotificationsRead(); updateCounts(); }
+function openFromNotif(id){ const d=DEALS.find(x=>x.id===id); if(!d)return; currentCat=''; feedQuery=d.title; showView('feed'); const s=document.getElementById('feedSearch'); if(s) s.value=d.title; document.querySelectorAll('#cats .cat').forEach(c=>c.classList.toggle('on',(c.dataset.cat||'')==='')); toast('good','Plan mis en avant','Voici le plan de ta notification.'); }
+function renderAlerts(){
+  const el=document.getElementById('alList'),empty=document.getElementById('alEmpty'); el.innerHTML='';
+  empty.style.display=alerts.length?'none':'';
+  alerts.forEach(a=>{
+    const n=alMatch(a); const it=document.createElement('div'); it.className='al-item'+(a.active?'':' off');
+    const label=a.keyword?('« '+a.keyword+' »'):(a.cat||'Tous les plans');
+    const sub=[a.keyword&&a.cat?a.cat:null,n+' plan'+(n>1?'s':'')+' correspondant'+(n>1?'s':'')].filter(Boolean).join(' · ');
+    it.innerHTML=`<div class="aic">${iconSVG(a.keyword?'search':catIc(a.cat))}</div>
+      <div class="ainfo"><b>${label}</b><small>${sub}</small></div>
+      <div class="switch${a.active?' on':''}" onclick="toggleAlert(${a.id})"></div>
+      <button class="al-del" onclick="deleteAlert(${a.id})" aria-label="Supprimer">${iconSVG('trash')}</button>`;
+    el.appendChild(it);
+  });
+  updateCounts();
+}
+function createAlert(){
+  const kw=document.getElementById('alKeyword').value.trim();
+  if(!kw && !alSelCat){ toast('warn','Alerte incomplète','Ajoute un mot-clé ou choisis une catégorie.'); return; }
+  const a={id:++alSeq,keyword:kw,cat:alSelCat,active:true};
+  alerts.unshift(a);
+  if(window.LBP&&LBP.enabled) LBP.api.insertAlert(a);
+  document.getElementById('alKeyword').value=''; alSelCat=''; buildAlCats();
+  fireAlertOnCreate(a);                              // la règle s'active immédiatement
+  renderAlerts(); renderNotifs();
+  const m=alMatch(a);
+  toast('good','Alerte activée', m?(m+' plan'+(m>1?'s':'')+' correspond'+(m>1?'ent':'')+' déjà — vois tes notifications.'):'Tu seras notifié dès qu\'un plan correspond.');
+}
+
+/* ===== PUBLIER UN PLAN (déclenche les alertes) ===== */
+function val(id){ return document.getElementById(id).value.trim(); }
+function buildPubCats(){
+  const el=document.getElementById('pubCats'); if(!el)return; el.innerHTML='';
+  CATS.forEach(c=>{ const chip=document.createElement('div'); chip.className='al-chip'+(pubSelCat===c.key?' on':'');
+    chip.onclick=()=>{pubSelCat=(pubSelCat===c.key?'':c.key);buildPubCats();}; chip.innerHTML=`${iconSVG(c.ic)} ${c.key}`; el.appendChild(chip); });
+}
+function openPublish(){ buildPubCats(); document.getElementById('pubSheet').classList.add('show'); }
+function closePublish(){ document.getElementById('pubSheet').classList.remove('show'); }
+function submitPublish(){
+  const title=val('pubTitle');
+  if(!title || !pubSelCat){ toast('warn','Champs manquants','Ajoute au moins un titre et une catégorie.'); return; }
+  const dom=domainOf(val('pubLink'));
+  const d={id:++dealSeq,user:'Maxime_Deals',av:'MX',cat:pubSelCat,icon:pickIcon(title+' '+val('pubDesc'),pubSelCat),
+    disc:val('pubDisc')||'Bon plan',exp:"À l'instant",title,now:val('pubNow')||'—',old:val('pubOld')||'',
+    desc:val('pubDesc')||'Nouveau plan partagé avec la communauté.',tags:[pubSelCat,'Nouveau'],votes:0,views:0,validated:0,verified:false,
+    steps:(val('pubSteps')||'').split('\n').map(s=>s.trim()).filter(Boolean),video:val('pubVideo'),
+    link:val('pubLink'),domain:dom,image:dom?faviconUrl(dom):''};   /* MVP : image = og:image récupérée côté serveur depuis le lien */
+  DEALS.unshift(d);
+  if(window.LBP&&LBP.enabled) LBP.api.insertDeal(d).then(()=>{ renderFeed(); });   // → Supabase (id BDD + trigger d'alertes serveur)
+  momentId=computeMoment();
+  evaluateNewDeal(d);                                // les alertes concernées se déclenchent (local ; serveur via trigger)
+  ['pubTitle','pubNow','pubOld','pubDisc','pubLink','pubDesc','pubSteps','pubVideo'].forEach(x=>document.getElementById(x).value=''); pubSelCat='';
+  closePublish();
+  toast('good','Plan publié','Ton plan est en ligne — les alertes concernées ont été déclenchées.');
+  showView('feed');
+}
+function toggleAlert(id){ const a=alerts.find(x=>x.id===id); if(a){a.active=!a.active;renderAlerts();if(window.LBP&&LBP.enabled)LBP.api.setAlertActive(id,a.active);} }
+function deleteAlert(id){ alerts=alerts.filter(x=>x.id!==id); renderAlerts(); if(window.LBP&&LBP.enabled)LBP.api.deleteAlert(id); toast('good','Alerte supprimée','Tu ne recevras plus cette alerte.'); }
+
+/* ===== COMPTEURS ===== */
+function updateCounts(){
+  const nf=document.getElementById('navFav'); if(nf) nf.textContent=favorites.size;
+  const unread=notifications.filter(n=>!n.read).length;
+  document.querySelectorAll('#navAlerts,#tabAlerts').forEach(na=>{ na.textContent=unread; na.style.display=unread?'':'none'; });
+}
+
+/* signalement */
+/* ===== VALIDATION (Utilisé et validé) ===== */
+function validateDeal(id,btn){
+  if(validatedByUser.has(id)){ toast('good','Déjà validé','Tu as déjà confirmé que ce plan fonctionne. Merci !'); return; }
+  validatedByUser.add(id);
+  const d=DEALS.find(x=>x.id===id); if(d) d.validated++;
+  if(window.LBP&&LBP.enabled) LBP.api.addValidation(id);
+  momentId=computeMoment();
+  toast('good','Merci pour ta validation','Ton « utilisé et validé » renforce ce plan et son badge.');
+  rerenderCurrent();
+}
+
+/* ===== FICHE DU BON PLAN (process + vidéo) ===== */
+function stepsFor(d){
+  if(d.steps && d.steps.length) return d.steps;
+  const site='Ouvre le site via « Aller sur le site »';
+  const hasCode = d.now && /[A-Z0-9]{4,}/.test(d.now);
+  const byCat={
+    'Codes promo':[site,'Ajoute les articles à ton panier',hasCode?('Saisis le code '+d.now+' au moment du paiement'):'Applique le code au moment du paiement','Vérifie que la remise est bien appliquée avant de valider'],
+    'Failles':[site,"Reproduis l'astuce décrite dans le plan (cumul de codes, réglage…)",'Vérifie le prix final avant de payer','Finalise vite — les failles sont corrigées rapidement'],
+    'Voyage':[site,'Sélectionne tes dates et ta destination','Vérifie le tarif et les conditions','Réserve (annulation gratuite si possible)'],
+    'Officiel':['Vérifie ton éligibilité sur le site officiel','Prépare les justificatifs demandés','Effectue la démarche 100 % en ligne','Conserve la confirmation officielle'],
+    'Cashback':['Passe bien par le lien de la plateforme de cashback','Effectue ton achat normalement','Le cashback est crédité après validation du marchand','Retire tes gains une fois le seuil atteint'],
+    'Alternatives':[site,"Compare les fonctionnalités avec le service d'origine",'Teste l’offre (souvent sans engagement)','Adopte si ça te convient'],
+    'Tech':[site,"Vérifie l'état et la garantie",'Applique la réduction / le code si nécessaire','Commande 100 % en ligne'],
+  };
+  return byCat[d.cat]||[site,'Suis les indications du plan',"Profite de l'offre avant expiration"];
+}
+function ytEmbed(url){
+  const m=(url||'').match(/(?:youtu\.be\/|[?&]v=)([\w-]{6,})/); if(m) return 'https://www.youtube.com/embed/'+m[1];
+  const vm=(url||'').match(/vimeo\.com\/(\d+)/); if(vm) return 'https://player.vimeo.com/video/'+vm[1];
+  return '';
+}
+/* Pub à l'ouverture d'un plan (une fois par session), puis la fiche s'ouvre */
+let shownCardAd=false, pendingDealId=null, preAdTimer=null;
+function openDeal(id){
+  if(!shownCardAd){ shownCardAd=true; pendingDealId=id; showPreDealAd(); }
+  else renderDeal(id);
+}
+function showPreDealAd(){
+  document.getElementById('preDealAd').classList.add('show');
+  let t=5; const cd=document.getElementById('preAdCd'), btn=document.getElementById('preAdBtn');
+  cd.textContent=t; btn.style.opacity=.4; btn.style.pointerEvents='none';
+  clearInterval(preAdTimer);
+  preAdTimer=setInterval(()=>{ t--; cd.textContent=Math.max(t,0); if(t<=0){ clearInterval(preAdTimer); btn.style.opacity=1; btn.style.pointerEvents='auto'; } },1000);
+}
+function continuePreDealAd(){ document.getElementById('preDealAd').classList.remove('show'); if(pendingDealId!=null){ renderDeal(pendingDealId); pendingDealId=null; } }
+function renderDeal(id){
+  const d=DEALS.find(x=>x.id===id); if(!d)return;
+  if(window.LBP&&LBP.enabled) LBP.api.incrementViews(id);
+  const b=planBadge(d), vd=validatedByUser.has(d.id), fav=favorites.has(d.id);
+  const steps=stepsFor(d), embed=ytEmbed(d.video);
+  document.getElementById('dealBody').innerHTML=`
+    <div class="ds-head">
+      <div class="ds-viz">${iconSVG(d.icon)}</div>
+      <div class="ds-h-txt">
+        <span class="plan-badge ${b.cls}">${iconSVG(b.ic)} ${b.label}</span>
+        <h3>${d.title}</h3>
+        <div class="ds-price"><span class="now">${d.now}</span>${d.old?`<span class="old">${d.old}</span>`:''}<span class="ds-disc">${d.disc}</span></div>
+      </div>
+    </div>
+    <div class="ds-meta"><span>${iconSVG('eye')} <b>${fmtViews(d.views)}</b> vues</span><span>${iconSVG('verified')} <b>${d.validated}</b> validations</span><span>${iconSVG('clock')} ${d.exp}</span>${d.domain?`<span>${iconSVG('link')} ${d.domain}</span>`:''}</div>
+    <p class="ds-desc">${d.desc}</p>
+    ${d.domain?`<a class="btn ds-cta" href="${d.link||('https://'+d.domain)}" target="_blank" rel="noopener">${iconSVG('link')} Aller sur le site</a>`:''}
+    <div class="ds-section">${iconSVG('steps')} Comment en profiter</div>
+    <ol class="ds-steps">${steps.map(s=>`<li>${s}</li>`).join('')}</ol>
+    ${d.video?`<div class="ds-section">${iconSVG('play')} Vidéo explicative</div>
+      <div class="ds-video"${embed?` data-embed="${embed}"`:''} onclick="playVideo(this,'${(d.video||'').replace(/'/g,'')}')">
+        <span class="dv-play">${iconSVG('play')}</span><span class="dv-label">Regarder — comment profiter du plan</span>
+      </div>`:''}
+    <div class="ds-foot">
+      <button class="act-btn validate${vd?' done':''}" onclick="validateDeal(${d.id},this);openDeal(${d.id})">${iconSVG('check')} <span>${vd?'Validé':'Utilisé et validé'}</span></button>
+      <button class="act-btn" onclick="toggleFav(${d.id},null,event);openDeal(${d.id})">${iconSVG('heart')} <span>${fav?'Retiré':'Favori'}</span></button>
+      <button class="act-btn ban" onclick="closeDeal();openBanById(${d.id})">${iconSVG('ban')} <span>Ban</span></button>
+    </div>`;
+  document.getElementById('dealSheet').classList.add('show');
+}
+function closeDeal(){ document.getElementById('dealSheet').classList.remove('show'); }
+document.getElementById('dealSheet').addEventListener('click',e=>{ if(e.target.id==='dealSheet') closeDeal(); });
+function playVideo(el,url){
+  const embed=el.dataset.embed;
+  if(embed){ el.classList.add('playing'); el.innerHTML='<iframe src="'+embed+'?autoplay=1" allow="autoplay; encrypted-media; fullscreen" allowfullscreen></iframe>'; }
+  else if(url){ window.open(url,'_blank','noopener'); }
+}
+
+/* ===== BAN ===== */
+let reportCard=null;
+function openBan(id,btn){ reportCard=btn?btn.closest('.card'):null; document.getElementById('reportSheet').classList.add('show'); }
+function openBanById(id){ reportCard=document.querySelector('.card[data-id=\"'+id+'\"]'); document.getElementById('reportSheet').classList.add('show'); }
+function closeSheet(){ document.getElementById('reportSheet').classList.remove('show'); }
+document.getElementById('reportSheet').addEventListener('click',e=>{ if(e.target.id==='reportSheet') closeSheet(); });
+function confirmReport(reason){
+  closeSheet(); const card=reportCard; if(!card)return;
+  if(window.LBP&&LBP.enabled&&card.dataset.id) LBP.api.banDeal(+card.dataset.id,reason);
+  card.classList.add('flagged'); card.querySelector('.flag-tape').innerHTML=iconSVG('ban')+' Banni : '+reason+' — retrait…';
+  toast('warn','Plan banni','Le plan est retiré. Son auteur est averti et reçoit un point « faux plan ».');
+  setTimeout(()=>{card.classList.add('removing');setTimeout(()=>card.remove(),800);},1400);
+}
+
+/* toast */
+let toastTimer=null;
+function toast(type,title,msg){
+  const t=document.getElementById('toast'); t.className='toast '+(type||'good')+' show';
+  t.querySelector('.ico').innerHTML=iconSVG(type==='warn'?'alert':'check');
+  document.getElementById('toastTitle').textContent=title; document.getElementById('toastMsg').textContent=msg;
+  clearTimeout(toastTimer); toastTimer=setTimeout(()=>t.classList.remove('show'),3400);
+}
+
+/* pub 2 min */
+let sessionStarted=false,adShown=false,sessionT0=0,adSheetTimer=null; const TWO_MIN=120000;
+function startSessionTimer(){
+  if(sessionStarted)return; sessionStarted=true; sessionT0=performance.now();
+  setInterval(()=>{ if(!adShown&&performance.now()-sessionT0>=TWO_MIN) triggerAdSheet(); },1000);
+}
+function triggerAdSheet(){
+  adShown=true; document.getElementById('adSheet').classList.add('show');
+  let t=5; const cd=document.getElementById('adSheetCd'),btn=document.getElementById('adSheetClose');
+  cd.textContent=t; btn.style.opacity=.4; btn.style.pointerEvents='none'; clearInterval(adSheetTimer);
+  adSheetTimer=setInterval(()=>{t--;cd.textContent=Math.max(t,0);
+    if(t<=0){clearInterval(adSheetTimer);btn.style.opacity=1;btn.style.pointerEvents='auto';btn.textContent='Continuer';}},1000);
+}
+function closeAdSheet(){ document.getElementById('adSheet').classList.remove('show'); }
+function demoAd(){ adShown=false; triggerAdSheet(); }
+
+hydrate(document);
+</script>
+
+<!-- ============ INTÉGRATION SUPABASE (inactive tant que USE_SUPABASE=false) ============ -->
+<script src="js/config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/supabase.js"></script>
+<script src="js/api.js"></script>
+<script src="js/bootstrap.js"></script>
+</body>
+</html>

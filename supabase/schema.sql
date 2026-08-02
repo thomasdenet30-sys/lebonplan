@@ -1,0 +1,273 @@
+-- ============================================================
+-- LEBONPLAN — Schéma Supabase (PostgreSQL)
+-- À exécuter dans Supabase → SQL Editor (ou via `supabase db push`).
+-- Contient : tables, index, sécurité RLS, et les règles serveur
+-- (validations, moteur d'alertes, bannissement au 3e faux plan).
+-- ============================================================
+
+create extension if not exists "pgcrypto";
+
+-- ------------------------------------------------------------
+-- PROFILS (1 ligne par utilisateur auth)
+-- ------------------------------------------------------------
+create table if not exists public.profiles (
+  id                uuid primary key references auth.users(id) on delete cascade,
+  username          text unique,
+  avatar            text,
+  level             int  not null default 1,
+  fake_plans_count  int  not null default 0,   -- compteur "faux plans"
+  banned            boolean not null default false,
+  created_at        timestamptz not null default now()
+);
+
+-- Crée automatiquement un profil à l'inscription
+create or replace function public.handle_new_user()
+returns trigger language plpgsql security definer set search_path = public as $$
+begin
+  insert into public.profiles (id, username)
+  values (new.id, coalesce(new.raw_user_meta_data->>'username', 'membre_' || substr(new.id::text, 1, 6)))
+  on conflict (id) do nothing;
+  return new;
+end; $$;
+
+drop trigger if exists on_auth_user_created on auth.users;
+create trigger on_auth_user_created
+  after insert on auth.users
+  for each row execute function public.handle_new_user();
+
+-- ------------------------------------------------------------
+-- CODES D'ACCÈS (gate d'entrée du site)
+-- ------------------------------------------------------------
+create table if not exists public.access_codes (
+  code       text primary key,
+  active     boolean not null default true,
+  label      text,
+  created_at timestamptz not null default now()
+);
+insert into public.access_codes (code, label) values ('2024', 'Code de lancement')
+  on conflict (code) do nothing;
+
+-- ------------------------------------------------------------
+-- PLANS
+-- ------------------------------------------------------------
+create table if not exists public.deals (
+  id           bigint generated always as identity primary key,
+  author       uuid references public.profiles(id) on delete set null,
+  cat          text not null,                    -- Failles, Alternatives, Voyage, Codes promo, Officiel, Tech, Cashback
+  icon         text,                             -- visuel auto (bolt, layers, voyage, mode, shield, tech, trend, boat…)
+  title        text not null,
+  price_now    text,                             -- prix OU code (ex. "29 €" ou "MEMBRE30")
+  price_old    text,
+  discount     text,                             -- "-80%", "Code", "Cashback"…
+  expires      text,                             -- libellé ("48 h", "Ce week-end") — passe en timestamptz si tu veux du vrai
+  description  text,
+  tags         text[] default '{}',
+  link         text,                             -- lien du site reconnu / officiel
+  domain       text,
+  image        text,                             -- og:image (rempli par l'Edge Function) ou favicon
+  video        text,                             -- lien vidéo explicative (YouTube/Vimeo…)
+  steps        text[] default '{}',              -- "comment en profiter"
+  views        int not null default 0,
+  validations  int not null default 0,           -- maintenu par trigger
+  verified     boolean not null default false,
+  status       text not null default 'live',     -- live | banned
+  created_at   timestamptz not null default now()
+);
+create index if not exists deals_cat_idx     on public.deals (cat);
+create index if not exists deals_status_idx  on public.deals (status);
+create index if not exists deals_created_idx on public.deals (created_at desc);
+
+-- Score & classement "Plan du moment"
+create or replace view public.deals_ranked as
+  select *, (views + validations * 25) as score
+  from public.deals
+  where status = 'live'
+  order by score desc;
+
+-- ------------------------------------------------------------
+-- FAVORIS
+-- ------------------------------------------------------------
+create table if not exists public.favorites (
+  user_id    uuid   not null references public.profiles(id) on delete cascade,
+  deal_id    bigint not null references public.deals(id)    on delete cascade,
+  created_at timestamptz not null default now(),
+  primary key (user_id, deal_id)
+);
+
+-- ------------------------------------------------------------
+-- VALIDATIONS ("utilisé et validé", unique par user/plan)
+-- ------------------------------------------------------------
+create table if not exists public.validations (
+  user_id    uuid   not null references public.profiles(id) on delete cascade,
+  deal_id    bigint not null references public.deals(id)    on delete cascade,
+  created_at timestamptz not null default now(),
+  primary key (user_id, deal_id)
+);
+
+-- Maintient deals.validations à jour
+create or replace function public.fn_validation_count()
+returns trigger language plpgsql security definer set search_path = public as $$
+begin
+  if (tg_op = 'INSERT') then
+    update public.deals set validations = validations + 1 where id = new.deal_id;
+  elsif (tg_op = 'DELETE') then
+    update public.deals set validations = greatest(validations - 1, 0) where id = old.deal_id;
+  end if;
+  return null;
+end; $$;
+
+drop trigger if exists trg_validation_count on public.validations;
+create trigger trg_validation_count
+  after insert or delete on public.validations
+  for each row execute function public.fn_validation_count();
+
+-- ------------------------------------------------------------
+-- ALERTES
+-- ------------------------------------------------------------
+create table if not exists public.alerts (
+  id         bigint generated always as identity primary key,
+  user_id    uuid not null references public.profiles(id) on delete cascade,
+  keyword    text,
+  cat        text,
+  active     boolean not null default true,
+  created_at timestamptz not null default now()
+);
+create index if not exists alerts_user_idx on public.alerts (user_id);
+
+-- ------------------------------------------------------------
+-- NOTIFICATIONS
+-- ------------------------------------------------------------
+create table if not exists public.notifications (
+  id         bigint generated always as identity primary key,
+  user_id    uuid not null references public.profiles(id) on delete cascade,
+  deal_id    bigint references public.deals(id) on delete set null,
+  title      text,
+  body       text,
+  icon       text,
+  read       boolean not null default false,
+  created_at timestamptz not null default now()
+);
+create index if not exists notif_user_idx on public.notifications (user_id, read);
+
+-- ------------------------------------------------------------
+-- SIGNALEMENTS / BAN
+-- ------------------------------------------------------------
+create table if not exists public.reports (
+  id         bigint generated always as identity primary key,
+  deal_id    bigint not null references public.deals(id) on delete cascade,
+  reporter   uuid references public.profiles(id) on delete set null,
+  reason     text,                                -- mensonge | obsolète | arnaque
+  created_at timestamptz not null default now()
+);
+
+-- ============================================================
+-- MOTEUR D'ALERTES : à l'insertion d'un plan, notifie les alertes
+-- correspondantes (mot-clé et/ou catégorie).
+-- ============================================================
+create or replace function public.fn_evaluate_alerts()
+returns trigger language plpgsql security definer set search_path = public as $$
+declare
+  a record;
+  haystack text;
+begin
+  haystack := lower(coalesce(new.title,'') || ' ' || coalesce(new.cat,'') || ' ' || array_to_string(coalesce(new.tags,'{}'), ' '));
+  for a in
+    select * from public.alerts
+    where active = true
+      and (cat is null or cat = new.cat)
+      and (keyword is null or keyword = '' or haystack like '%' || lower(keyword) || '%')
+  loop
+    insert into public.notifications (user_id, deal_id, title, body, icon)
+    values (
+      a.user_id, new.id, 'Nouveau plan pour toi',
+      '« ' || new.title || ' » correspond à ton alerte '
+        || coalesce('« ' || a.keyword || ' »', a.cat, 'tous les plans') || '.',
+      new.icon
+    );
+  end loop;
+  return new;
+end; $$;
+
+drop trigger if exists trg_evaluate_alerts on public.deals;
+create trigger trg_evaluate_alerts
+  after insert on public.deals
+  for each row execute function public.fn_evaluate_alerts();
+
+-- ============================================================
+-- BAN : retire le plan, avertit l'auteur, +1 "faux plan",
+-- bannit le profil au 3e. (Appelé via RPC fn_ban_deal.)
+-- ============================================================
+create or replace function public.fn_ban_deal(p_deal bigint, p_reason text)
+returns void language plpgsql security definer set search_path = public as $$
+declare
+  v_author uuid;
+  v_title  text;
+  v_count  int;
+begin
+  select author, title into v_author, v_title from public.deals where id = p_deal;
+  if not found then return; end if;
+
+  insert into public.reports (deal_id, reporter, reason) values (p_deal, auth.uid(), p_reason);
+  update public.deals set status = 'banned' where id = p_deal;
+
+  if v_author is not null then
+    update public.profiles
+      set fake_plans_count = fake_plans_count + 1
+      where id = v_author
+      returning fake_plans_count into v_count;
+
+    insert into public.notifications (user_id, deal_id, title, body, icon)
+    values (v_author, p_deal, 'Un de tes plans a été retiré',
+            '« ' || coalesce(v_title,'') || ' » a été signalé (' || coalesce(p_reason,'') ||
+            '). Faux plans : ' || v_count || '/3.', 'alert');
+
+    if v_count >= 3 then
+      update public.profiles set banned = true where id = v_author;
+      insert into public.notifications (user_id, title, body, icon)
+      values (v_author, 'Profil banni', 'Ton profil a été banni automatiquement (3 faux plans confirmés).', 'ban');
+    end if;
+  end if;
+end; $$;
+
+-- Incrément des vues
+create or replace function public.fn_increment_views(p_deal bigint)
+returns void language sql security definer set search_path = public as $$
+  update public.deals set views = views + 1 where id = p_deal;
+$$;
+
+-- ============================================================
+-- SÉCURITÉ (Row Level Security)
+-- ============================================================
+alter table public.profiles     enable row level security;
+alter table public.deals        enable row level security;
+alter table public.favorites    enable row level security;
+alter table public.validations  enable row level security;
+alter table public.alerts       enable row level security;
+alter table public.notifications enable row level security;
+alter table public.reports      enable row level security;
+alter table public.access_codes enable row level security;
+
+-- Profils : lecture publique, mise à jour de soi
+create policy profiles_read   on public.profiles for select using (true);
+create policy profiles_update on public.profiles for update using (auth.uid() = id);
+
+-- Plans : lecture des plans "live" par tous ; création par l'auteur ; MAJ de ses propres plans
+create policy deals_read   on public.deals for select using (status = 'live' or author = auth.uid());
+create policy deals_insert on public.deals for insert with check (author = auth.uid());
+create policy deals_update on public.deals for update using (author = auth.uid());
+
+-- Favoris / validations / alertes / notifications : chacun gère les siens
+create policy fav_all    on public.favorites   for all using (user_id = auth.uid()) with check (user_id = auth.uid());
+create policy val_all    on public.validations for all using (user_id = auth.uid()) with check (user_id = auth.uid());
+create policy alerts_all on public.alerts      for all using (user_id = auth.uid()) with check (user_id = auth.uid());
+create policy notif_read   on public.notifications for select using (user_id = auth.uid());
+create policy notif_update on public.notifications for update using (user_id = auth.uid());
+
+-- Signalements : création par tout utilisateur connecté
+create policy reports_insert on public.reports for insert with check (auth.uid() is not null);
+
+-- Codes d'accès : lecture publique (vérification du gate)
+create policy codes_read on public.access_codes for select using (true);
+
+-- Realtime sur les nouveaux plans (optionnel)
+alter publication supabase_realtime add table public.deals;
