@@ -867,7 +867,7 @@ function showView(v){
 }
 
 /* code */
-let code=''; let resetTimer=null; const DEMO_CODE='1984';
+let code=''; let resetTimer=null, codeSeq=0, checking=false; const DEMO_CODE='1984';
 const dots=document.querySelectorAll('#dots .dot'); const hint=document.getElementById('codeHint');
 function renderDots(){ dots.forEach((d,i)=>{d.classList.toggle('on',i<code.length);d.classList.remove('err');}); }
 function clearCodeError(){
@@ -880,18 +880,23 @@ document.getElementById('keypad').addEventListener('click',e=>{
   /* Une saisie erronée programme un effacement 600 ms plus tard. Sans ceci, il
      tombait au milieu de la re-saisie et mangeait les premiers chiffres : le
      portail restait bloqué sans rien afficher. On efface tout de suite. */
-  if(resetTimer){ clearTimeout(resetTimer); resetTimer=null; clearCodeError(); }
+  if(resetTimer||checking){ clearTimeout(resetTimer); resetTimer=null; checking=false; codeSeq++; clearCodeError(); }
   if(v==='del'){ code=code.slice(0,-1); renderDots(); return; }
   if(v==='hint'){ hint.textContent="Indice : le roman d'Orwell."; hint.classList.remove('bad'); return; }
   if(code.length>=4) return; code+=v; renderDots();
   if(code.length===4) setTimeout(checkCode,180);
 });
 function checkCode(){
-  const bad=()=>{ dots.forEach(d=>d.classList.add('err')); document.getElementById('dots').classList.add('shake');
+  /* Une saisie repartie de zéro pendant la vérification invalide celle en vol :
+     sans ce jeton, la réponse tardive écrasait la nouvelle saisie. */
+  const seq=++codeSeq; checking=true;
+  const fini=()=>{ checking=false; return seq===codeSeq; };
+  const bad=()=>{ if(!fini())return; dots.forEach(d=>d.classList.add('err')); document.getElementById('dots').classList.add('shake');
     hint.textContent="Code invalide. Réessaie."; hint.classList.add('bad');
     clearTimeout(resetTimer);
     resetTimer=setTimeout(()=>{ resetTimer=null; clearCodeError(); },600); };
   const proceed=()=>{
+    if(!fini())return;
     document.getElementById('burst').classList.add('go');
     setTimeout(()=>{ afterUnlock(); },620);                                 // bascule DERRIÈRE le voile encore opaque
     setTimeout(()=>{ document.getElementById('burst').classList.remove('go'); code='';renderDots();hint.textContent="Code d'accès · 4 chiffres";hint.classList.remove('bad'); },1750);
