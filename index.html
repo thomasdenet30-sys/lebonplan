@@ -783,22 +783,6 @@ textarea.al-input{resize:none;font-family:var(--sans);line-height:1.5;}
     </div>
   </div>
 
-  <!-- PUB À L'OUVERTURE D'UN PLAN -->
-  <!-- INTERSTITIEL 2 MIN -->
-  <div class="sheet-bg" id="adSheet">
-    <div style="width:100%;max-width:360px;padding:0 18px" onclick="event.stopPropagation()">
-      <div class="ad-card">
-        <div class="ad-tag" style="position:static;padding:12px 16px 0">Publicité</div>
-        <div class="ad-visual" style="height:170px"><div class="shine"></div><div class="bg-ic"><span class="ic" data-ic="gift"></span></div></div>
-        <div class="ad-body">
-          <h3>Merci d'être là</h3>
-          <p>Cette publicité garde LEBONPLAN gratuit pour tous. Elle se ferme dans <b id="adSheetCd">5</b> s.</p>
-          <button class="btn" id="adSheetClose" style="opacity:.4;pointer-events:none" onclick="closeAdSheet()">Continuer</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
   <!-- FICHE DU BON PLAN -->
   <div class="sheet-bg" id="dealSheet">
     <div class="sheet deal-sheet">
@@ -848,7 +832,7 @@ let current='s-code';
 function go(id){
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   document.getElementById(id).classList.add('active'); current=id;
-  if(id==='s-app'){ armFeed(); startSessionTimer(); }
+  if(id==='s-app'){ armFeed(); }
 }
 let currentView='feed';
 function showView(v){
@@ -1346,21 +1330,9 @@ function toast(type,title,msg){
   clearTimeout(toastTimer); toastTimer=setTimeout(()=>t.classList.remove('show'),3400);
 }
 
-/* pub 2 min */
-let sessionStarted=false,adShown=false,sessionT0=0,adSheetTimer=null; const TWO_MIN=120000;
-function startSessionTimer(){
-  if(sessionStarted)return; sessionStarted=true; sessionT0=performance.now();
-  setInterval(()=>{ if(!adShown&&performance.now()-sessionT0>=TWO_MIN) triggerAdSheet(); },1000);
-}
-function triggerAdSheet(){
-  adShown=true; document.getElementById('adSheet').classList.add('show');
-  let t=5; const cd=document.getElementById('adSheetCd'),btn=document.getElementById('adSheetClose');
-  cd.textContent=t; btn.style.opacity=.4; btn.style.pointerEvents='none'; clearInterval(adSheetTimer);
-  adSheetTimer=setInterval(()=>{t--;cd.textContent=Math.max(t,0);
-    if(t<=0){clearInterval(adSheetTimer);btn.style.opacity=1;btn.style.pointerEvents='auto';btn.textContent='Continuer';}},1000);
-}
-function closeAdSheet(){ document.getElementById('adSheet').classList.remove('show'); }
-function demoAd(){ adShown=false; triggerAdSheet(); }
+/* Les deux interstitiels publicitaires ont été retirés : ils figeaient l'écran
+   5 s sans échappatoire (ni clic sur le fond, ni Échap). Le minuteur de session
+   qui déclenchait celui des 2 minutes n'a plus lieu d'être. */
 
 hydrate(document);
 </script>
