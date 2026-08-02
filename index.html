@@ -4,6 +4,13 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>LEBONPLAN — Maquette premium</title>
+<script>
+  /* Avant tout rendu : si le code a déjà été saisi, on ne sait pas encore s'il
+     faut afficher les plans ou la connexion, mais on sait qu'il ne faut PAS
+     montrer le portail. Sans ce drapeau posé ici, l'écran du code apparaît le
+     temps que les scripts de fin de page s'exécutent. */
+  try { if (localStorage.getItem('lbp_gate_ok') === '1') document.documentElement.classList.add('booting'); } catch (e) {}
+</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,900;1,9..144,500&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -102,6 +109,17 @@ body{font-family:var(--sans);color:var(--ink);overflow:hidden;position:fixed;ins
 .key:hover{border-color:var(--line-strong);background:rgba(0,255,140,.06);} .key:active{background:var(--green);color:#021b0f;transform:scale(.9);box-shadow:var(--glow);}
 .key.fn{font-family:var(--sans);font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);background:transparent;border-color:transparent;font-weight:700;}
 .key.fn .svg-ic{font-size:20px;}
+/* Écran de chargement au rechargement : masque le portail tant qu'on ne sait
+   pas quel écran afficher. Le drapeau .booting est posé dans le <head>. */
+.boot{position:fixed;inset:0;z-index:400;display:none;flex-direction:column;align-items:center;justify-content:center;gap:26px;background:var(--bg);}
+html.booting .boot{display:flex;}
+html.booting .screen.active{display:none;}
+.boot-mark{display:flex;align-items:center;font-weight:800;font-size:22px;letter-spacing:.01em;opacity:.92;}
+.boot-mark .b-dot{margin-right:11px;}
+.boot-mark span{color:var(--green);}
+.boot-spin{width:34px;height:34px;border-radius:50%;border:2px solid rgba(0,255,140,.18);border-top-color:var(--green);animation:bootspin .8s linear infinite;}
+@keyframes bootspin{to{transform:rotate(360deg);}}
+@media(prefers-reduced-motion:reduce){.boot-spin{animation-duration:2.4s;}}
 /* Portail sur mobile : la hauteur est la ressource rare et body est en
    overflow:hidden, donc ce qui dépasse est définitivement perdu. Mesuré sur
    iPhone 13 avec les barres Safari : le clavier tombait 70 px sous le bord. */
@@ -532,6 +550,12 @@ textarea.al-input{resize:none;font-family:var(--sans);line-height:1.5;}
 </head>
 <body>
 
+<!-- ============ ÉCRAN DE CHARGEMENT (rechargement, code déjà saisi) ============ -->
+<div class="boot" id="boot" role="status" aria-label="Chargement">
+  <div class="boot-mark"><span class="b-dot"></span>LEBON<span>PLAN</span></div>
+  <div class="boot-spin"></div>
+</div>
+
 <!-- ============ SPRITE ICÔNES PREMIUM ============ -->
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
   <symbol id="i-spark" viewBox="0 0 24 24"><path d="M12 2c.4 4.9 1.6 6.1 6.5 6.5-4.9.4-6.1 1.6-6.5 6.5-.4-4.9-1.6-6.1-6.5-6.5 4.9-.4 6.1-1.6 6.5-6.5z"/><path d="M18.5 15.5c.2 2 .7 2.5 2.7 2.7-2 .2-2.5.7-2.7 2.7-.2-2-.7-2.5-2.7-2.7 2-.2 2.5-.7 2.7-2.7z"/></symbol>
@@ -934,13 +958,15 @@ function checkCode(){
 const GATE_KEY='lbp_gate_ok';
 function gatePassed(){ try{ return localStorage.getItem(GATE_KEY)==='1'; }catch(e){ return false; } }
 function rememberGate(){ try{ localStorage.setItem(GATE_KEY,'1'); }catch(e){} }
+function endBoot(){ document.documentElement.classList.remove('booting'); }
 document.addEventListener('DOMContentLoaded',()=>{
-  if(!gatePassed()) return;
-  if(!(window.LBP&&LBP.enabled)){ afterUnlock(); return; }
+  if(!gatePassed()){ endBoot(); return; }
+  if(!(window.LBP&&LBP.enabled)){ afterUnlock(); endBoot(); return; }
   /* Supabase actif : on laisse bootstrap.js rétablir la session avant de
-     choisir entre l'écran de connexion et les plans. */
+     choisir entre l'écran de connexion et les plans. Le compteur borne
+     l'attente pour que l'écran de chargement ne reste jamais figé. */
   let n=0; const t=setInterval(()=>{
-    if(LBP._user || ++n>20){ clearInterval(t); afterUnlock(); }
+    if(LBP._user || ++n>20){ clearInterval(t); afterUnlock(); endBoot(); }
   },150);
 });
 function afterUnlock(){
