@@ -21,7 +21,8 @@
       desc: r.description || '', tags: r.tags || [], votes: 0,
       views: r.views || 0, validated: r.validations || 0, verified: !!r.verified,
       link: r.link || '', domain: r.domain || '', image: r.image || '',
-      video: r.video || '', steps: r.steps || []
+      video: r.video || '', steps: r.steps || [],
+      created: r.created_at || null      // date réelle, pour l'ancienneté affichée
     };
   }
   function dealToDb(d) {
@@ -115,6 +116,22 @@
       var u = user(); if (!u) return [];
       var out = await sb().from('notifications').select('*').eq('user_id', u.id).order('created_at', { ascending: false }).limit(50);
       return (out.data || []).map(function (r) { return { id: r.id, title: r.title, text: r.body, icon: r.icon, read: r.read, dealId: r.deal_id }; });
+    },
+    /* Profil réel : compteur de faux plans et bannissement viennent du serveur,
+       ils ne sont pas modifiables par le client (grant colonne par colonne). */
+    async getMyProfile() {
+      var u = user(); if (!u) return null;
+      var out = await sb().from('profiles').select('username,level,fake_plans_count,banned,created_at').eq('id', u.id).maybeSingle();
+      if (out.error) { console.warn('[LEBONPLAN] getMyProfile', out.error); return null; }
+      return out.data;
+    },
+    /* Mes plans, y compris ceux retirés : la policy deals_read autorise
+       « status = live OU author = auth.uid() ». */
+    async getMyDeals() {
+      var u = user(); if (!u) return [];
+      var out = await sb().from('deals').select('*').eq('author', u.id).order('created_at', { ascending: false });
+      if (out.error) { console.warn('[LEBONPLAN] getMyDeals', out.error); return []; }
+      return out.data || [];
     },
     async getMyValidations() {
       var u = user(); if (!u) return [];

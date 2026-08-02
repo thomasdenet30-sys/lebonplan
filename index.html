@@ -745,35 +745,22 @@ textarea.al-input{resize:none;font-family:var(--sans);line-height:1.5;}
                 <h2 class="prof-name">Membre</h2>
                 <p class="prof-handle">@maxdeals · Chasseur de plans, niveau 7</p>
                 <div class="prof-stats">
-                  <div class="pstat"><b>128</b><span>Plans</span></div>
-                  <div class="pstat"><b>9,4k</b><span>Votes</span></div>
-                  <div class="pstat"><b>2,1k</b><span>Abonnés</span></div>
+                  <div class="pstat"><b id="statPlans">—</b><span>Plans</span></div>
+                  <div class="pstat"><b id="statVues">—</b><span>Vues</span></div>
+                  <div class="pstat"><b id="statVal">—</b><span>Validations</span></div>
                 </div>
               </div>
               <div class="prof-inner">
                 <div class="trust">
                   <div class="trust-top">
                     <h4><span class="ic" data-ic="scale"></span> Fiabilité du profil</h4>
-                    <div class="status warn">FAUX PLANS · 2/3</div>
+                    <div class="status" id="trustStatus">—</div>
                   </div>
-                  <div class="strikes"><div class="strike filled"></div><div class="strike filled"></div><div class="strike"></div></div>
-                  <p class="trust-note"><b>Attention :</b> 2 plans signalés comme faux ou obsolètes ont été supprimés. Au 3ᵉ signalement confirmé, ce profil sera <b>banni automatiquement</b>.</p>
-                </div>
-                <div class="sec-title">Badges débloqués</div>
-                <div class="badges">
-                  <div class="badge2"><div class="bico"><span class="ic" data-ic="trophy"></span></div><span>Top chasseur</span></div>
-                  <div class="badge2"><div class="bico"><span class="ic" data-ic="bolt"></span></div><span>Plan éclair</span></div>
-                  <div class="badge2"><div class="bico"><span class="ic" data-ic="spark"></span></div><span>100 plans</span></div>
-                  <div class="badge2 locked"><div class="bico"><span class="ic" data-ic="medal"></span></div><span>Légende</span></div>
-                  <div class="badge2 locked"><div class="bico"><span class="ic" data-ic="shield"></span></div><span>Zéro faux</span></div>
+                  <div class="strikes" id="trustStrikes"></div>
+                  <p class="trust-note" id="trustNote"></p>
                 </div>
                 <div class="sec-title">Plans postés</div>
-                <div class="mini-deals">
-                  <div class="mini-deal"><div class="thumb"><span class="ic" data-ic="bolt"></span></div><div class="info"><h5>Erreur de prix : vol −80 %</h5><p>2 340 votes · il y a 3 j</p></div><div class="st live">EN LIGNE</div></div>
-                  <div class="mini-deal"><div class="thumb"><span class="ic" data-ic="mode"></span></div><div class="info"><h5>Code −30 % enseigne en ligne</h5><p>1 890 votes · il y a 5 j</p></div><div class="st live">EN LIGNE</div></div>
-                  <div class="mini-deal" style="opacity:.55"><div class="thumb"><span class="ic" data-ic="mode"></span></div><div class="info"><h5>Code promo expiré</h5><p>Signalé obsolète · il y a 6 j</p></div><div class="st dead">SUPPRIMÉ</div></div>
-                  <div class="mini-deal" style="opacity:.55"><div class="thumb"><span class="ic" data-ic="shield"></span></div><div class="info"><h5>Fausse « aide officielle »</h5><p>Signalé mensonge · il y a 8 j</p></div><div class="st dead">SUPPRIMÉ</div></div>
-                </div>
+                <div class="mini-deals" id="myDeals"></div>
               </div>
             </div>
           </div>
@@ -888,9 +875,21 @@ textarea.al-input{resize:none;font-family:var(--sans);line-height:1.5;}
       <p>Uniquement des plans <b>en ligne</b> : sites reconnus, offres officielles, alternatives légales moins chères, codes promo ou failles de prix. Pas de vente entre particuliers.</p>
       <input id="pubTitle" class="al-input" placeholder="Titre — ex. Erreur de prix, code promo, aide officielle…">
       <div class="pub-row">
-        <input id="pubNow" class="al-input" placeholder="Prix ou code — ex. 29 € ou MEMBRE30">
-        <input id="pubOld" class="al-input" placeholder="Prix barré — ex. 79 € (optionnel)">
+        <input id="pubNow" class="al-input" placeholder="Prix ou code — ex. 29 ou MEMBRE30">
+        <input id="pubOld" class="al-input" placeholder="Prix barré — ex. 79 (optionnel)">
       </div>
+      <div class="pub-row">
+        <select id="pubCurrency" class="al-input">
+          <option value="EUR" selected>€ Euro (EUR)</option>
+          <option value="USD">$ Dollar américain (USD)</option>
+          <option value="GBP">£ Livre sterling (GBP)</option>
+          <option value="CHF">CHF Franc suisse</option>
+          <option value="CAD">$ CA Dollar canadien</option>
+          <option value="JPY">¥ Yen (JPY)</option>
+          <option value="NONE">Aucune — code promo ou pourcentage</option>
+        </select>
+      </div>
+      <div class="al-hint">La devise s'ajoute automatiquement aux montants chiffrés. Un code promo ou un pourcentage reste inchangé.</div>
       <input id="pubDisc" class="al-input" placeholder="Réduction — ex. −50 %, Code, Cashback…">
       <input id="pubLink" class="al-input" placeholder="Lien du site reconnu / officiel">
       <div class="al-sublabel">Catégorie</div>
@@ -936,6 +935,7 @@ function showView(v){
   if(v==='explore') renderExplore();
   if(v==='favoris') renderFav();
   if(v==='alerts'){ renderAlerts(); renderNotifs(); markNotifsRead(); }
+  if(v==='profile') renderProfile();
   const c=document.querySelector('.content'); if(c) c.scrollTop=0;
 }
 
@@ -1111,6 +1111,18 @@ function planScore(d){ return d.views + d.validated*25 + d.votes*2; }
 function computeMoment(){ if(!DEALS.length) return null; let best=DEALS[0]; DEALS.forEach(d=>{ if(planScore(d)>planScore(best)) best=d; }); return best.id; }
 let momentId=computeMoment();
 function fmtViews(n){ return n>=1000?(n/1000).toFixed(1).replace('.',',')+'k':(''+n); }
+/* Ancienneté réelle, calculée sur created_at. Remplace un « il y a (i%9)+1 h »
+   qui n'était qu'un habillage dépendant du rang dans la liste. */
+function ancienneté(iso){
+  if(!iso) return '';
+  const t=Date.parse(iso); if(isNaN(t)) return '';
+  const s=Math.max(0,(Date.now()-t)/1000);
+  if(s<60) return "à l'instant";
+  if(s<3600) return 'il y a '+Math.floor(s/60)+' min';
+  if(s<86400) return 'il y a '+Math.floor(s/3600)+' h';
+  if(s<2592000) return 'il y a '+Math.floor(s/86400)+' j';
+  return 'le '+new Date(t).toLocaleDateString('fr-FR');
+}
 function planBadge(d){
   if(d.id===momentId) return {label:'Plan du moment',cls:'b-gold',ic:'crown'};
   if(d.validated>=350 || d.views>=12000) return {label:'Pépite validée',cls:'b-hot',ic:'medal'};
@@ -1139,7 +1151,7 @@ function cardHTML(d,i){
     <div class="flag-tape">${iconSVG('alert')} Plan banni — retrait en cours</div>
     <button class="save${fav}" onclick="toggleFav(${d.id},this,event)" aria-label="Sauvegarder">${iconSVG('heart')}</button>
     <div class="top"><div class="mini-av">${d.av}</div>
-      <div class="who">Posté par <b>${d.user}</b><br>il y a ${(i%9)+1} h</div>
+      <div class="who">Posté par <b>${d.user}</b><br>${ancienneté(d.created)}</div>
       ${d.verified?`<div class="verif">${iconSVG('verified')} Fiable</div>`:`<div class="verif new">${iconSVG('clock')} Récent</div>`}</div>
     <div class="deal-media">
       <div class="auto-viz"><span class="av-glow"></span>${iconSVG(d.icon)}</div>
@@ -1165,6 +1177,44 @@ function cardHTML(d,i){
 function renderGrid(el,list){
   el.innerHTML='';
   list.forEach((d,i)=>{const c=document.createElement('div');c.className='card'+(d.id===momentId?' moment':'');c.dataset.id=d.id;c.style.animationDelay=(i*0.06)+'s';c.innerHTML=cardHTML(d,i);el.appendChild(c);});
+}
+/* ===== PROFIL (chiffres réels, aucun placeholder) ===== */
+async function renderProfile(){
+  if(!(window.LBP&&LBP.enabled&&LBP._user)) return;
+  const [p,mes]=await Promise.all([LBP.api.getMyProfile(),LBP.api.getMyDeals()]);
+  const enLigne=mes.filter(d=>d.status==='live');
+  const vues=mes.reduce((s,d)=>s+(d.views||0),0);
+  const vals=mes.reduce((s,d)=>s+(d.validations||0),0);
+  const set=(id,v)=>{ const e=document.getElementById(id); if(e) e.textContent=v; };
+  set('statPlans',enLigne.length); set('statVues',fmtViews(vues)); set('statVal',fmtViews(vals));
+
+  const h=document.querySelector('.prof-handle');
+  if(h&&p) h.textContent='@'+(p.username||'membre')+' · niveau '+(p.level||1);
+
+  /* Fiabilité : fake_plans_count et banned viennent du serveur et ne sont pas
+     modifiables par le client. */
+  const faux=p?(p.fake_plans_count||0):0, banni=p?!!p.banned:false;
+  const st=document.getElementById('trustStatus');
+  if(st){ st.textContent=banni?'PROFIL BANNI':'FAUX PLANS · '+faux+'/3';
+          st.className='status'+((banni||faux>0)?' warn':' ok'); }
+  const str=document.getElementById('trustStrikes');
+  if(str) str.innerHTML=[0,1,2].map(i=>`<div class="strike${i<faux?' filled':''}"></div>`).join('');
+  const note=document.getElementById('trustNote');
+  if(note) note.innerHTML = banni
+    ? '<b>Profil banni.</b> Trois plans signalés comme faux ont été confirmés.'
+    : (faux===0
+        ? 'Aucun plan signalé. Au 3ᵉ signalement confirmé, un profil est <b>banni automatiquement</b>.'
+        : `<b>Attention :</b> ${faux} plan${faux>1?'s':''} signalé${faux>1?'s':''} et retiré${faux>1?'s':''}. Au 3ᵉ, ce profil sera <b>banni automatiquement</b>.`);
+
+  const box=document.getElementById('myDeals');
+  if(box) box.innerHTML = mes.length ? mes.map(d=>`
+    <div class="mini-deal"${d.status!=='live'?' style="opacity:.55"':''}>
+      <div class="thumb">${iconSVG(d.icon||catIc(d.cat))}</div>
+      <div class="info"><h5>${d.title}</h5>
+        <p>${fmtViews(d.views||0)} vues · ${d.validations||0} validations · ${ancienneté(d.created_at)}</p></div>
+      <div class="st ${d.status==='live'?'live':'dead'}">${d.status==='live'?'EN LIGNE':'RETIRÉ'}</div>
+    </div>`).join('')
+    : '<p class="trust-note">Tu n\'as pas encore publié de plan.</p>';
 }
 function rerenderCurrent(){ if(currentView==='feed')renderFeed(); else if(currentView==='explore')renderExplore(); else if(currentView==='favoris')renderFav(); updateCounts(); }
 
@@ -1309,6 +1359,16 @@ function checkPubVideo(v){
   if(ytEmbed(s)){ h.textContent='Vidéo reconnue — elle se lira directement sur LEBONPLAN.'; h.className='al-hint ok'; }
   else { h.textContent='Lien non reconnu. Accepté : YouTube, Vimeo, Dailymotion, ou un fichier .mp4 / .webm.'; h.className='al-hint bad'; }
 }
+/* Ajoute la devise aux seuls montants chiffrés : un code promo (« MEMBRE30 »)
+   ou un pourcentage (« -50 % ») doit rester tel quel. */
+const DEVISES={EUR:{s:'€',apres:true},USD:{s:'$',apres:false},GBP:{s:'£',apres:false},
+               CHF:{s:'CHF',apres:true},CAD:{s:'$ CA',apres:true},JPY:{s:'¥',apres:false}};
+function avecDevise(v,code){
+  const t=(v||'').trim(); if(!t) return '';
+  const d=DEVISES[code]; if(!d) return t;                       // « Aucune »
+  if(!/^\d+([.,]\d{1,2})?$/.test(t)) return t;                  // code, pourcentage, texte
+  return d.apres ? t+' '+d.s : d.s+t;
+}
 function submitPublish(btn){
   const title=val('pubTitle');
   if(!title || !pubSelCat){ toast('warn','Champs manquants','Ajoute au moins un titre et une catégorie.'); return; }
@@ -1320,9 +1380,11 @@ function submitPublish(btn){
   if(!(window.LBP&&LBP.enabled)){ toast('warn','Publication impossible','Service indisponible. Recharge la page.'); return; }
   const moi=(LBP._user&&LBP._user.user_metadata&&LBP._user.user_metadata.username)
          || (LBP._user&&LBP._user.email?LBP._user.email.split('@')[0]:'Membre');
+  const devise=(document.getElementById('pubCurrency')||{}).value||'EUR';
   const dom=domainOf(val('pubLink'));
   const d={id:++dealSeq,user:moi,av:moi.slice(0,2).toUpperCase(),cat:pubSelCat,icon:pickIcon(title+' '+val('pubDesc'),pubSelCat),
-    disc:val('pubDisc')||'Bon plan',exp:"À l'instant",title,now:val('pubNow')||'—',old:val('pubOld')||'',
+    disc:val('pubDisc')||'Bon plan',exp:"À l'instant",title,
+    now:avecDevise(val('pubNow'),devise)||'—',old:avecDevise(val('pubOld'),devise),
     desc:val('pubDesc')||'Nouveau plan partagé avec la communauté.',tags:[pubSelCat,'Nouveau'],votes:0,views:0,validated:0,verified:false,
     steps:(val('pubSteps')||'').split('\n').map(s=>s.trim()).filter(Boolean),video:val('pubVideo'),
     link:val('pubLink'),domain:dom,image:dom?faviconUrl(dom):''};   /* MVP : image = og:image récupérée côté serveur depuis le lien */
@@ -1339,7 +1401,8 @@ function submitPublish(btn){
     DEALS.unshift(d);
     momentId=computeMoment();
     evaluateNewDeal(d);                                // alertes locales ; côté serveur via trigger
-    ['pubTitle','pubNow','pubOld','pubDisc','pubLink','pubDesc','pubSteps','pubVideo'].forEach(x=>document.getElementById(x).value=''); pubSelCat=''; checkPubVideo('');
+    ['pubTitle','pubNow','pubOld','pubDisc','pubLink','pubDesc','pubSteps','pubVideo'].forEach(x=>document.getElementById(x).value='');
+    document.getElementById('pubCurrency').value='EUR'; pubSelCat=''; checkPubVideo('');
     closePublish();
     toast('good','Plan publié','Ton plan est en ligne — les alertes concernées ont été déclenchées.');
     showView('feed');
