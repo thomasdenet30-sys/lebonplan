@@ -888,7 +888,7 @@ function renderDots(){ dots.forEach((d,i)=>{d.classList.toggle('on',i<code.lengt
 document.getElementById('keypad').addEventListener('click',e=>{
   const k=e.target.closest('.key'); if(!k)return; const v=k.dataset.k;
   if(v==='del'){ code=code.slice(0,-1); renderDots(); return; }
-  if(v==='hint'){ hint.textContent="Indice : l'année où tout a commencé… 2024"; hint.classList.remove('bad'); return; }
+  if(v==='hint'){ hint.textContent="Indice : le roman d'Orwell."; hint.classList.remove('bad'); return; }
   if(code.length>=4) return; code+=v; renderDots();
   if(code.length===4) setTimeout(checkCode,180);
 });
