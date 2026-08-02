@@ -135,10 +135,13 @@
       await sb().from('notifications').update({ read: true }).eq('user_id', u.id).eq('read', false);
     },
 
-    /* ----- Modération : ban (RPC serveur) ----- */
-    async banDeal(dealId, reason) {
-      var out = await sb().rpc('fn_ban_deal', { p_deal: dealId, p_reason: reason });
-      if (out.error) console.warn(out.error);
+    /* ----- Modération : signalement (RPC serveur) -----
+       Le ban n'est décidé que côté serveur, au 3e signalement de membres
+       distincts. Retourne { reports, threshold, banned } ou null en cas d'échec. */
+    async reportDeal(dealId, reason) {
+      var out = await sb().rpc('fn_report_deal', { p_deal: dealId, p_reason: reason });
+      if (out.error) { console.warn(out.error); return null; }
+      return out.data;
     },
 
     /* ----- Vues ----- */

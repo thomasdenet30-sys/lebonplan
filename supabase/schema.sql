@@ -162,6 +162,10 @@ create table if not exists public.reports (
   reason     text,                                -- mensonge | obsolète | arnaque
   created_at timestamptz not null default now()
 );
+-- Un seul signalement par membre et par plan : c'est ce qui donne son sens au
+-- seuil de 3 (sinon un seul compte atteindrait le seuil en trois clics).
+create unique index if not exists reports_deal_reporter_idx
+  on public.reports (deal_id, reporter);
 
 -- ============================================================
 -- MOTEUR D'ALERTES : à l'insertion d'un plan, notifie les alertes
@@ -198,7 +202,9 @@ create trigger trg_evaluate_alerts
 
 -- ============================================================
 -- BAN : retire le plan, avertit l'auteur, +1 "faux plan",
--- bannit le profil au 3e. (Appelé via RPC fn_ban_deal.)
+-- bannit le profil au 3e faux plan.
+-- Fonction INTERNE : déclenchée par fn_report_deal une fois le seuil de
+-- signalements atteint, jamais appelable depuis le client (revoke plus bas).
 -- ============================================================
 create or replace function public.fn_ban_deal(p_deal bigint, p_reason text)
 returns void language plpgsql security definer set search_path = public as $$
@@ -207,14 +213,9 @@ declare
   v_title  text;
   v_count  int;
 begin
-  if auth.uid() is null then
-    raise exception 'Authentification requise pour signaler un plan.';
-  end if;
-
   select author, title into v_author, v_title from public.deals where id = p_deal;
   if not found then return; end if;
 
-  insert into public.reports (deal_id, reporter, reason) values (p_deal, auth.uid(), p_reason);
   update public.deals set status = 'banned' where id = p_deal;
 
   if v_author is not null then
@@ -236,10 +237,50 @@ begin
   end if;
 end; $$;
 
--- Postgres accorde l'EXECUTE à PUBLIC par défaut : sans ce revoke, un visiteur
--- anonyme pourrait bannir n'importe quel plan (un SECURITY DEFINER ignore les RLS).
-revoke execute on function public.fn_ban_deal(bigint, text) from public, anon;
-grant  execute on function public.fn_ban_deal(bigint, text) to authenticated;
+-- Plus personne ne bannit directement : Postgres accorde l'EXECUTE à PUBLIC par
+-- défaut, et un SECURITY DEFINER ignore les RLS.
+revoke execute on function public.fn_ban_deal(bigint, text) from public, anon, authenticated;
+
+-- ============================================================
+-- SIGNALEMENT : enregistre un signalement (un seul par membre et par plan)
+-- et ne bannit qu'au 3e signalement de membres distincts.
+-- SECURITY DEFINER assumé : le reporter est imposé à auth.uid() et n'est pas
+-- un paramètre, il ne peut donc pas être forgé pour fabriquer trois voix.
+-- ============================================================
+create or replace function public.fn_report_deal(p_deal bigint, p_reason text)
+returns jsonb language plpgsql security definer set search_path = public as $$
+declare
+  v_uid    uuid := auth.uid();
+  v_count  int;
+  v_status text;
+begin
+  if v_uid is null then
+    raise exception 'Authentification requise pour signaler un plan.';
+  end if;
+
+  select status into v_status from public.deals where id = p_deal;
+  if not found then
+    raise exception 'Plan introuvable.';
+  end if;
+
+  insert into public.reports (deal_id, reporter, reason)
+  values (p_deal, v_uid, p_reason)
+  on conflict (deal_id, reporter) do nothing;
+
+  select count(distinct reporter) into v_count
+    from public.reports
+    where deal_id = p_deal and reporter is not null;
+
+  if v_count >= 3 and v_status <> 'banned' then
+    perform public.fn_ban_deal(p_deal, p_reason);
+    v_status := 'banned';
+  end if;
+
+  return jsonb_build_object('reports', v_count, 'threshold', 3, 'banned', v_status = 'banned');
+end; $$;
+
+revoke execute on function public.fn_report_deal(bigint, text) from public, anon;
+grant  execute on function public.fn_report_deal(bigint, text) to authenticated;
 
 -- Incrément des vues
 create or replace function public.fn_increment_views(p_deal bigint)
@@ -321,11 +362,11 @@ create policy notif_read   on public.notifications for select to authenticated
 create policy notif_update on public.notifications for update to authenticated
   using (user_id = (select auth.uid())) with check (user_id = (select auth.uid()));
 
--- Signalements : création par tout utilisateur connecté
+-- Signalements : aucune écriture directe depuis le client, tout passe par
+-- fn_report_deal. Sinon un seul compte insérerait trois lignes avec trois
+-- reporter différents et déclencherait le ban à lui tout seul.
 drop policy if exists reports_insert on public.reports;
-create policy reports_insert on public.reports for insert
-  to authenticated
-  with check ((select auth.uid()) is not null);
+revoke insert, update, delete on public.reports from anon, authenticated;
 
 -- Codes d'accès : lecture publique (vérification du gate)
 drop policy if exists codes_read on public.access_codes;

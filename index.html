@@ -1305,17 +1305,32 @@ function playVideo(el,url){
   else if(url){ window.open(url,'_blank','noopener'); }
 }
 
-/* ===== BAN ===== */
+/* ===== SIGNALEMENT (ban au 3e signalement de membres distincts) ===== */
 let reportCard=null;
+const REPORT_THRESHOLD=3;
+const demoReports={};   /* mode démo : compteur local, faute de serveur */
 function openBan(id,btn){ reportCard=btn?btn.closest('.card'):null; document.getElementById('reportSheet').classList.add('show'); }
 function openBanById(id){ reportCard=document.querySelector('.card[data-id=\"'+id+'\"]'); document.getElementById('reportSheet').classList.add('show'); }
 function closeSheet(){ document.getElementById('reportSheet').classList.remove('show'); }
 document.getElementById('reportSheet').addEventListener('click',e=>{ if(e.target.id==='reportSheet') closeSheet(); });
-function confirmReport(reason){
+async function confirmReport(reason){
   closeSheet(); const card=reportCard; if(!card)return;
-  if(window.LBP&&LBP.enabled&&card.dataset.id) LBP.api.banDeal(+card.dataset.id,reason);
+  const id=card.dataset.id?+card.dataset.id:null;
+  let res;
+  if(window.LBP&&LBP.enabled&&id){
+    res=await LBP.api.reportDeal(id,reason);
+    if(!res){ toast('warn','Signalement impossible','Réessaie dans un instant.'); return; }
+  }else{
+    const k=id||0; demoReports[k]=(demoReports[k]||0)+1;
+    res={reports:demoReports[k],threshold:REPORT_THRESHOLD,banned:demoReports[k]>=REPORT_THRESHOLD};
+  }
+  if(!res.banned){
+    const n=res.reports,t=res.threshold||REPORT_THRESHOLD;
+    toast('warn','Signalement enregistré','Ce plan a '+n+' signalement'+(n>1?'s':'')+' sur '+t+'. Il sera retiré au '+t+'ᵉ.');
+    return;
+  }
   card.classList.add('flagged'); card.querySelector('.flag-tape').innerHTML=iconSVG('ban')+' Banni : '+reason+' — retrait…';
-  toast('warn','Plan banni','Le plan est retiré. Son auteur est averti et reçoit un point « faux plan ».');
+  toast('warn','Plan banni',(res.threshold||REPORT_THRESHOLD)+'ᵉ signalement atteint : le plan est retiré. Son auteur est averti et reçoit un point « faux plan ».');
   setTimeout(()=>{card.classList.add('removing');setTimeout(()=>card.remove(),800);},1400);
 }
 
