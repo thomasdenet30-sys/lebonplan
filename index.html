@@ -1320,6 +1320,7 @@ async function confirmReport(reason){
   if(window.LBP&&LBP.enabled&&id){
     res=await LBP.api.reportDeal(id,reason);
     if(!res){ toast('warn','Signalement impossible','Réessaie dans un instant.'); return; }
+    if(res.error){ toast('warn','Signalement refusé',res.error); return; }
   }else{
     const k=id||0; demoReports[k]=(demoReports[k]||0)+1;
     res={reports:demoReports[k],threshold:REPORT_THRESHOLD,banned:demoReports[k]>=REPORT_THRESHOLD};

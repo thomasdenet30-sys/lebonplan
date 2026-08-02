@@ -246,16 +246,31 @@ revoke execute on function public.fn_ban_deal(bigint, text) from public, anon, a
 -- et ne bannit qu'au 3e signalement de membres distincts.
 -- SECURITY DEFINER assumé : le reporter est imposé à auth.uid() et n'est pas
 -- un paramètre, il ne peut donc pas être forgé pour fabriquer trois voix.
+-- Réservé aux comptes à e-mail vérifié : sans ça, trois signInAnonymously()
+-- suffisaient à réunir trois "membres distincts".
 -- ============================================================
 create or replace function public.fn_report_deal(p_deal bigint, p_reason text)
 returns jsonb language plpgsql security definer set search_path = public as $$
 declare
-  v_uid    uuid := auth.uid();
-  v_count  int;
-  v_status text;
+  v_uid      uuid := auth.uid();
+  v_verified boolean;
+  v_count    int;
+  v_status   text;
 begin
   if v_uid is null then
-    raise exception 'Authentification requise pour signaler un plan.';
+    raise exception 'Authentification requise pour signaler un plan.'
+      using errcode = '42501';
+  end if;
+
+  -- Lu dans auth.users et non dans auth.jwt() : user_metadata est modifiable
+  -- par l'utilisateur, et les claims du JWT ne sont pas rafraîchis à la volée.
+  -- Un compte anonyme n'a pas d'e-mail, il est donc écarté par le même test.
+  select email_confirmed_at is not null into v_verified
+    from auth.users where id = v_uid;
+
+  if not coalesce(v_verified, false) then
+    raise exception 'Signalement réservé aux comptes dont l''adresse e-mail est vérifiée.'
+      using errcode = '42501';
   end if;
 
   select status into v_status from public.deals where id = p_deal;

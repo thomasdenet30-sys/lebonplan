@@ -140,7 +140,10 @@
        distincts. Retourne { reports, threshold, banned } ou null en cas d'échec. */
     async reportDeal(dealId, reason) {
       var out = await sb().rpc('fn_report_deal', { p_deal: dealId, p_reason: reason });
-      if (out.error) { console.warn(out.error); return null; }
+      if (out.error) {
+        console.warn(out.error);
+        return { error: out.error.message || 'Signalement impossible pour le moment.' };
+      }
       return out.data;
     },
 
