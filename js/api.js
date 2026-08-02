@@ -72,6 +72,13 @@
     },
     async signOut() { await sb().auth.signOut(); L._user = null; },
 
+    /* Compte vérifié = e-mail confirmé. Miroir côté client de
+       public.is_verified_user() ; la règle qui fait foi reste côté serveur. */
+    isVerified() {
+      var u = user();
+      return !!(u && u.email && (u.email_confirmed_at || u.confirmed_at));
+    },
+
     /* ----- Code d'accès (table access_codes) ----- */
     async verifyAccessCode(code) {
       var out = await sb().from('access_codes').select('code').eq('code', code).eq('active', true).maybeSingle();

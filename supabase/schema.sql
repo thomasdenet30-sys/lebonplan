@@ -242,6 +242,26 @@ end; $$;
 revoke execute on function public.fn_ban_deal(bigint, text) from public, anon, authenticated;
 
 -- ============================================================
+-- Compte "vérifié" = e-mail confirmé. Source unique de vérité pour les actions
+-- réservées aux vrais comptes (publication, signalement).
+-- Lu dans auth.users et non dans auth.jwt() : user_metadata est modifiable par
+-- l'utilisateur et les claims du JWT ne sont pas rafraîchis à la volée. Un
+-- compte anonyme n'ayant pas d'e-mail, il est écarté par le même test.
+-- SECURITY DEFINER pour lire auth.users ; ne révèle que le statut de l'appelant.
+-- ============================================================
+create or replace function public.is_verified_user()
+returns boolean language sql stable security definer set search_path = public as $$
+  select exists (
+    select 1 from auth.users
+     where id = auth.uid()
+       and email_confirmed_at is not null
+  );
+$$;
+
+revoke execute on function public.is_verified_user() from public, anon;
+grant  execute on function public.is_verified_user() to authenticated;
+
+-- ============================================================
 -- SIGNALEMENT : enregistre un signalement (un seul par membre et par plan)
 -- et ne bannit qu'au 3e signalement de membres distincts.
 -- SECURITY DEFINER assumé : le reporter est imposé à auth.uid() et n'est pas
@@ -252,23 +272,16 @@ revoke execute on function public.fn_ban_deal(bigint, text) from public, anon, a
 create or replace function public.fn_report_deal(p_deal bigint, p_reason text)
 returns jsonb language plpgsql security definer set search_path = public as $$
 declare
-  v_uid      uuid := auth.uid();
-  v_verified boolean;
-  v_count    int;
-  v_status   text;
+  v_uid    uuid := auth.uid();
+  v_count  int;
+  v_status text;
 begin
   if v_uid is null then
     raise exception 'Authentification requise pour signaler un plan.'
       using errcode = '42501';
   end if;
 
-  -- Lu dans auth.users et non dans auth.jwt() : user_metadata est modifiable
-  -- par l'utilisateur, et les claims du JWT ne sont pas rafraîchis à la volée.
-  -- Un compte anonyme n'a pas d'e-mail, il est donc écarté par le même test.
-  select email_confirmed_at is not null into v_verified
-    from auth.users where id = v_uid;
-
-  if not coalesce(v_verified, false) then
+  if not public.is_verified_user() then
     raise exception 'Signalement réservé aux comptes dont l''adresse e-mail est vérifiée.'
       using errcode = '42501';
   end if;
@@ -340,9 +353,12 @@ drop policy if exists deals_insert on public.deals;
 drop policy if exists deals_update on public.deals;
 create policy deals_read   on public.deals for select
   using (status = 'live' or author = (select auth.uid()));
+-- Publication réservée aux comptes vérifiés : sur Supabase un compte anonyme
+-- porte le rôle « authenticated » au même titre qu'un compte e-mail, donc
+-- « to authenticated » seul laisserait publier n'importe quel visiteur.
 create policy deals_insert on public.deals for insert
   to authenticated
-  with check (author = (select auth.uid()));
+  with check (author = (select auth.uid()) and public.is_verified_user());
 create policy deals_update on public.deals for update
   to authenticated
   using      (author = (select auth.uid()) and status = 'live')

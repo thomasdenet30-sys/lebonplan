@@ -1190,7 +1190,13 @@ function buildPubCats(){
   CATS.forEach(c=>{ const chip=document.createElement('div'); chip.className='al-chip'+(pubSelCat===c.key?' on':'');
     chip.onclick=()=>{pubSelCat=(pubSelCat===c.key?'':c.key);buildPubCats();}; chip.innerHTML=`${iconSVG(c.ic)} ${c.key}`; el.appendChild(chip); });
 }
-function openPublish(){ buildPubCats(); document.getElementById('pubSheet').classList.add('show'); }
+function openPublish(){
+  if(window.LBP&&LBP.enabled&&!LBP.api.isVerified()){
+    toast('warn','Compte vérifié requis','Publier demande un compte avec e-mail confirmé. En invité tu peux consulter, sauvegarder et valider.');
+    go('s-auth'); authMode('signup'); return;
+  }
+  buildPubCats(); document.getElementById('pubSheet').classList.add('show');
+}
 function closePublish(){ document.getElementById('pubSheet').classList.remove('show'); }
 function submitPublish(){
   const title=val('pubTitle');
@@ -1202,7 +1208,13 @@ function submitPublish(){
     steps:(val('pubSteps')||'').split('\n').map(s=>s.trim()).filter(Boolean),video:val('pubVideo'),
     link:val('pubLink'),domain:dom,image:dom?faviconUrl(dom):''};   /* MVP : image = og:image récupérée côté serveur depuis le lien */
   DEALS.unshift(d);
-  if(window.LBP&&LBP.enabled) LBP.api.insertDeal(d).then(()=>{ renderFeed(); });   // → Supabase (id BDD + trigger d'alertes serveur)
+  if(window.LBP&&LBP.enabled) LBP.api.insertDeal(d).then(id=>{                     // → Supabase (id BDD + trigger d'alertes serveur)
+    if(!id){                                                                       // refus serveur : on retire la carte optimiste
+      const i=DEALS.indexOf(d); if(i>=0) DEALS.splice(i,1);
+      toast('warn','Publication refusée','Le serveur a rejeté le plan — compte non vérifié ?');
+    }
+    renderFeed();
+  });
   momentId=computeMoment();
   evaluateNewDeal(d);                                // les alertes concernées se déclenchent (local ; serveur via trigger)
   ['pubTitle','pubNow','pubOld','pubDisc','pubLink','pubDesc','pubSteps','pubVideo'].forEach(x=>document.getElementById(x).value=''); pubSelCat='';
