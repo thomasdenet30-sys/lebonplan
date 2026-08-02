@@ -78,7 +78,10 @@ create index if not exists deals_status_idx  on public.deals (status);
 create index if not exists deals_created_idx on public.deals (created_at desc);
 
 -- Score & classement "Plan du moment"
-create or replace view public.deals_ranked as
+-- security_invoker : sans cette option une vue s'exécute avec les droits de son
+-- créateur et court-circuite donc les RLS de public.deals.
+create or replace view public.deals_ranked
+  with (security_invoker = true) as
   select *, (views + validations * 25) as score
   from public.deals
   where status = 'live'
@@ -204,6 +207,10 @@ declare
   v_title  text;
   v_count  int;
 begin
+  if auth.uid() is null then
+    raise exception 'Authentification requise pour signaler un plan.';
+  end if;
+
   select author, title into v_author, v_title from public.deals where id = p_deal;
   if not found then return; end if;
 
@@ -229,6 +236,11 @@ begin
   end if;
 end; $$;
 
+-- Postgres accorde l'EXECUTE à PUBLIC par défaut : sans ce revoke, un visiteur
+-- anonyme pourrait bannir n'importe quel plan (un SECURITY DEFINER ignore les RLS).
+revoke execute on function public.fn_ban_deal(bigint, text) from public, anon;
+grant  execute on function public.fn_ban_deal(bigint, text) to authenticated;
+
 -- Incrément des vues
 create or replace function public.fn_increment_views(p_deal bigint)
 returns void language sql security definer set search_path = public as $$
@@ -247,27 +259,69 @@ alter table public.notifications enable row level security;
 alter table public.reports      enable row level security;
 alter table public.access_codes enable row level security;
 
--- Profils : lecture publique, mise à jour de soi
-create policy profiles_read   on public.profiles for select using (true);
-create policy profiles_update on public.profiles for update using (auth.uid() = id);
+-- Chaque policy est droppée avant d'être recréée : `create policy` échoue si
+-- elle existe déjà, sinon le script n'est pas ré-exécutable.
 
--- Plans : lecture des plans "live" par tous ; création par l'auteur ; MAJ de ses propres plans
-create policy deals_read   on public.deals for select using (status = 'live' or author = auth.uid());
-create policy deals_insert on public.deals for insert with check (author = auth.uid());
-create policy deals_update on public.deals for update using (author = auth.uid());
+-- Profils : lecture publique, mise à jour de soi
+drop policy if exists profiles_read   on public.profiles;
+drop policy if exists profiles_update on public.profiles;
+create policy profiles_read   on public.profiles for select using (true);
+create policy profiles_update on public.profiles for update
+  to authenticated
+  using      ((select auth.uid()) = id)
+  with check ((select auth.uid()) = id);
+
+-- Une policy RLS filtre des lignes, pas des colonnes : sans ce grant ciblé un
+-- membre banni pourrait écrire banned = false ou remettre fake_plans_count à 0.
+revoke update on public.profiles from anon, authenticated;
+grant  update (username, avatar) on public.profiles to authenticated;
+
+-- Plans : lecture des plans "live" par tous ; création par l'auteur ;
+-- MAJ de ses propres plans tant qu'ils sont "live" — le WITH CHECK empêche de
+-- réattribuer author, et le status dans le USING empêche de dé-bannir son plan.
+drop policy if exists deals_read   on public.deals;
+drop policy if exists deals_insert on public.deals;
+drop policy if exists deals_update on public.deals;
+create policy deals_read   on public.deals for select
+  using (status = 'live' or author = (select auth.uid()));
+create policy deals_insert on public.deals for insert
+  to authenticated
+  with check (author = (select auth.uid()));
+create policy deals_update on public.deals for update
+  to authenticated
+  using      (author = (select auth.uid()) and status = 'live')
+  with check (author = (select auth.uid()) and status = 'live');
 
 -- Favoris / validations / alertes / notifications : chacun gère les siens
-create policy fav_all    on public.favorites   for all using (user_id = auth.uid()) with check (user_id = auth.uid());
-create policy val_all    on public.validations for all using (user_id = auth.uid()) with check (user_id = auth.uid());
-create policy alerts_all on public.alerts      for all using (user_id = auth.uid()) with check (user_id = auth.uid());
-create policy notif_read   on public.notifications for select using (user_id = auth.uid());
-create policy notif_update on public.notifications for update using (user_id = auth.uid());
+drop policy if exists fav_all      on public.favorites;
+drop policy if exists val_all      on public.validations;
+drop policy if exists alerts_all   on public.alerts;
+drop policy if exists notif_read   on public.notifications;
+drop policy if exists notif_update on public.notifications;
+create policy fav_all    on public.favorites   for all to authenticated
+  using (user_id = (select auth.uid())) with check (user_id = (select auth.uid()));
+create policy val_all    on public.validations for all to authenticated
+  using (user_id = (select auth.uid())) with check (user_id = (select auth.uid()));
+create policy alerts_all on public.alerts      for all to authenticated
+  using (user_id = (select auth.uid())) with check (user_id = (select auth.uid()));
+create policy notif_read   on public.notifications for select to authenticated
+  using (user_id = (select auth.uid()));
+create policy notif_update on public.notifications for update to authenticated
+  using (user_id = (select auth.uid())) with check (user_id = (select auth.uid()));
 
 -- Signalements : création par tout utilisateur connecté
-create policy reports_insert on public.reports for insert with check (auth.uid() is not null);
+drop policy if exists reports_insert on public.reports;
+create policy reports_insert on public.reports for insert
+  to authenticated
+  with check ((select auth.uid()) is not null);
 
 -- Codes d'accès : lecture publique (vérification du gate)
+drop policy if exists codes_read on public.access_codes;
 create policy codes_read on public.access_codes for select using (true);
 
 -- Realtime sur les nouveaux plans (optionnel)
-alter publication supabase_realtime add table public.deals;
+do $$
+begin
+  alter publication supabase_realtime add table public.deals;
+exception when duplicate_object then null;   -- déjà dans la publication
+end $$;
