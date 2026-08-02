@@ -871,7 +871,7 @@ textarea.al-input{resize:none;font-family:var(--sans);line-height:1.5;}
   <div class="sheet-bg" id="pubSheet">
     <div class="sheet">
       <div class="grip"></div>
-      <h3>Publier un bon plan</h3>
+      <h3 id="pubHeading">Publier un bon plan</h3>
       <p>Uniquement des plans <b>en ligne</b> : sites reconnus, offres officielles, alternatives légales moins chères, codes promo ou failles de prix. Pas de vente entre particuliers.</p>
       <input id="pubTitle" class="al-input" placeholder="Titre — ex. Erreur de prix, code promo, aide officielle…">
       <div class="pub-row">
@@ -898,7 +898,7 @@ textarea.al-input{resize:none;font-family:var(--sans);line-height:1.5;}
       <textarea id="pubSteps" class="al-input" rows="3" placeholder="Comment en profiter — une étape par ligne (optionnel)"></textarea>
       <input id="pubVideo" class="al-input" oninput="checkPubVideo(this.value)" placeholder="Lien vidéo — YouTube, Vimeo, Dailymotion ou .mp4 (optionnel)">
       <div class="al-hint" id="pubVideoHint"></div>
-      <button class="btn" onclick="submitPublish(this)"><span class="ic" data-ic="plus"></span> Publier le plan</button>
+      <button class="btn" id="pubSubmit" onclick="submitPublish(this)"><span class="ic" data-ic="plus"></span> Publier le plan</button>
       <button class="btn ghost" onclick="closePublish()" style="margin-top:10px">Annuler</button>
     </div>
   </div>
@@ -1342,7 +1342,51 @@ function buildPubCats(){
   CATS.forEach(c=>{ const chip=document.createElement('div'); chip.className='al-chip'+(pubSelCat===c.key?' on':'');
     chip.onclick=()=>{pubSelCat=(pubSelCat===c.key?'':c.key);buildPubCats();}; chip.innerHTML=`${iconSVG(c.ic)} ${c.key}`; el.appendChild(chip); });
 }
+/* ===== MODIFICATION / SUPPRESSION DE SES PROPRES PLANS ===== */
+let pubEditId=null;
+function setPubMode(edition){
+  pubEditId = edition;
+  const h=document.getElementById('pubHeading'), b=document.getElementById('pubSubmit');
+  if(h) h.textContent = edition ? 'Modifier ton plan' : 'Publier un bon plan';
+  if(b) b.innerHTML = edition ? iconSVG('check')+' Enregistrer les modifications'
+                              : iconSVG('plus')+' Publier le plan';
+}
+function viderFormulaire(){
+  ['pubTitle','pubNow','pubOld','pubDisc','pubLink','pubDesc','pubSteps','pubVideo'].forEach(x=>document.getElementById(x).value='');
+  document.getElementById('pubCurrency').value='EUR'; pubSelCat=''; checkPubVideo(''); buildPubCats();
+}
+function openEdit(id){
+  const d=DEALS.find(x=>x.id===id); if(!d) return;
+  if(!(window.LBP&&LBP.enabled&&LBP.api.estAMoi(d))){ toast('warn','Modification impossible','Tu ne peux modifier que tes propres plans.'); return; }
+  closeDeal(); setPubMode(id);
+  pubSelCat=d.cat||''; buildPubCats();   /* buildPubCats lit pubSelCat pour marquer la puce active */
+  document.getElementById('pubTitle').value=d.title||'';
+  document.getElementById('pubNow').value=d.now||'';
+  document.getElementById('pubOld').value=d.old||'';
+  document.getElementById('pubDisc').value=d.disc||'';
+  document.getElementById('pubLink').value=d.link||'';
+  document.getElementById('pubDesc').value=d.desc||'';
+  document.getElementById('pubSteps').value=(d.steps||[]).join('\n');
+  document.getElementById('pubVideo').value=d.video||'';
+  checkPubVideo(d.video||'');
+  /* Le prix contient déjà son symbole : « aucune » évite de le doubler. */
+  document.getElementById('pubCurrency').value='NONE';
+  document.getElementById('pubSheet').classList.add('show');
+}
+async function askDelete(id,btn){
+  const d=DEALS.find(x=>x.id===id); if(!d) return;
+  if(!confirm('Supprimer définitivement « '+d.title+' » ? Cette action est irréversible.')) return;
+  setLoading(btn,true);
+  const ok=await LBP.api.deleteDeal(id);
+  setLoading(btn,false);
+  if(!ok){ toast('warn','Suppression refusée','Le serveur a refusé — le plan a peut-être déjà été retiré.'); return; }
+  const i=DEALS.findIndex(x=>x.id===id); if(i>=0) DEALS.splice(i,1);
+  favorites.delete(id); validatedByUser.delete(id);
+  momentId=computeMoment(); closeDeal(); rerenderCurrent();
+  toast('good','Plan supprimé','Ton plan a été retiré du site.');
+}
 function openPublish(){
+  setPubMode(null); viderFormulaire();
   if(window.LBP&&LBP.enabled&&!LBP.api.isVerified()){
     toast('warn','Compte vérifié requis','Publier demande un compte avec e-mail confirmé. En invité tu peux consulter, sauvegarder et valider.');
     go('s-auth'); authMode('signup'); return;
@@ -1393,18 +1437,28 @@ function submitPublish(btn){
      arrivait alors que l'utilisateur avait déjà quitté le formulaire.
      En cas d'échec on la laisse ouverte, les champs remplis, pour réessayer. */
   setLoading(btn,true);
-  LBP.api.insertDeal(d).then(id=>{                     // → Supabase (id BDD + trigger d'alertes serveur)
+  const edition=pubEditId;
+  const appel = edition ? LBP.api.updateDeal(edition,d) : LBP.api.insertDeal(d);
+  appel.then(id=>{
     if(!id){
-      toast('warn','Publication refusée','Le serveur a rejeté le plan — compte non vérifié ?');
+      toast('warn', edition?'Modification refusée':'Publication refusée',
+            edition?'Le serveur a refusé — le plan ne t\'appartient plus ou a été retiré.'
+                   :'Le serveur a rejeté le plan — compte non vérifié ?');
       return;
     }
-    DEALS.unshift(d);
+    if(edition){
+      const ex=DEALS.find(x=>x.id===edition);
+      if(ex) Object.assign(ex,d,{id:edition,views:ex.views,validated:ex.validated,verified:ex.verified,author:ex.author});
+    }else{
+      DEALS.unshift(d);
+      evaluateNewDeal(d);                              // alertes locales ; côté serveur via trigger
+    }
     momentId=computeMoment();
-    evaluateNewDeal(d);                                // alertes locales ; côté serveur via trigger
-    ['pubTitle','pubNow','pubOld','pubDisc','pubLink','pubDesc','pubSteps','pubVideo'].forEach(x=>document.getElementById(x).value='');
-    document.getElementById('pubCurrency').value='EUR'; pubSelCat=''; checkPubVideo('');
+    viderFormulaire(); setPubMode(null);
     closePublish();
-    toast('good','Plan publié','Ton plan est en ligne — les alertes concernées ont été déclenchées.');
+    toast('good', edition?'Plan modifié':'Plan publié',
+          edition?'Tes changements sont enregistrés.'
+                 :'Ton plan est en ligne — les alertes concernées ont été déclenchées.');
     showView('feed');
     renderFeed();
   }).finally(()=>setLoading(btn,false));
@@ -1502,7 +1556,10 @@ function renderDeal(id){
     <div class="ds-foot">
       <button class="act-btn validate${vd?' done':''}" onclick="validateDeal(${d.id},this);openDeal(${d.id})">${iconSVG('check')} <span>${vd?'Validé':'Utilisé et validé'}</span></button>
       <button class="act-btn" onclick="toggleFav(${d.id},null,event);openDeal(${d.id})">${iconSVG('heart')} <span>${fav?'Retiré':'Favori'}</span></button>
-      <button class="act-btn ban" onclick="closeDeal();openBanById(${d.id})">${iconSVG('ban')} <span>Ban</span></button>
+      ${(window.LBP&&LBP.enabled&&LBP.api.estAMoi(d))
+        ? `<button class="act-btn" onclick="openEdit(${d.id})">${iconSVG('steps')} <span>Modifier</span></button>
+           <button class="act-btn ban" onclick="askDelete(${d.id},this)">${iconSVG('ban')} <span>Supprimer</span></button>`
+        : `<button class="act-btn ban" onclick="closeDeal();openBanById(${d.id})">${iconSVG('ban')} <span>Ban</span></button>`}
     </div>`;
   document.getElementById('dealSheet').classList.add('show');
 }

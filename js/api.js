@@ -22,7 +22,8 @@
       views: r.views || 0, validated: r.validations || 0, verified: !!r.verified,
       link: r.link || '', domain: r.domain || '', image: r.image || '',
       video: r.video || '', steps: r.steps || [],
-      created: r.created_at || null      // date réelle, pour l'ancienneté affichée
+      created: r.created_at || null,     // date réelle, pour l'ancienneté affichée
+      author: r.author || null           // permet au front de savoir si le plan est le sien
     };
   }
   function dealToDb(d) {
@@ -148,6 +149,23 @@
       d.id = out.data.id;               // aligne l'id local sur l'id BDD
       return out.data.id;               // le trigger d'alertes s'exécute côté serveur
     },
+    /* Modification : dealToDb n'expose que les colonnes autorisées par le grant
+       UPDATE — author, status, verified, views et validations en sont absents. */
+    async updateDeal(dealId, d) {
+      var out = await sb().from('deals').update(dealToDb(d)).eq('id', dealId).select('id').maybeSingle();
+      if (out.error) { console.warn('[LEBONPLAN] updateDeal', out.error); return null; }
+      return out.data ? out.data.id : null;   // null si la RLS a filtré la ligne
+    },
+    async deleteDeal(dealId) {
+      var out = await sb().from('deals').delete().eq('id', dealId).select('id').maybeSingle();
+      if (out.error) { console.warn('[LEBONPLAN] deleteDeal', out.error); return false; }
+      return !!out.data;
+    },
+    estAMoi(d) {
+      var u = user();
+      return !!(u && d && d.author && d.author === u.id);
+    },
+
     async setFavorite(dealId, on) {
       var u = user(); if (!u) return;
       if (on) await sb().from('favorites').upsert({ user_id: u.id, deal_id: dealId });

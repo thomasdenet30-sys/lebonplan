@@ -364,6 +364,16 @@ create policy deals_update on public.deals for update
   using      (author = (select auth.uid()) and status = 'live')
   with check (author = (select auth.uid()) and status = 'live');
 
+-- Suppression par l'auteur, et seulement tant que le plan est « live » :
+-- effacer un plan banni ferait disparaître les signalements associés
+-- (reports.deal_id est en on delete cascade) et donc la trace de modération.
+drop policy if exists deals_delete on public.deals;
+create policy deals_delete on public.deals for delete
+  to authenticated
+  using (author = (select auth.uid()) and status = 'live');
+revoke delete on public.deals from anon;
+grant  delete on public.deals to authenticated;
+
 -- Colonnes de scoring et de modération retirées au client : views et validations
 -- sont maintenus par les triggers, verified et status par la modération, et le
 -- WITH CHECK ci-dessus valide la ligne sans regarder les colonnes touchées.
