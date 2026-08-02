@@ -244,7 +244,14 @@ html.booting .screen.active{display:none;}
 .verif.new{color:var(--muted);}
 .deal-media{margin:12px 0 0;height:158px;position:relative;overflow:hidden;display:flex;align-items:flex-end;padding:16px;
   background:radial-gradient(120% 130% at 78% 12%,#124d31,#04170e 85%);}
-.deal-media .auto-viz{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--green);font-size:82px;}
+.deal-media .auto-viz{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--green);font-size:82px;z-index:0;}
+/* Photo réelle du plan. Elle se superpose au symbole, qui reste en dessous :
+   si l'image ne charge pas, un onerror la retire et l'illustration d'origine
+   réapparaît — jamais de cadre vide. Le voile garde badges et prix lisibles. */
+.deal-media .media-img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:1;}
+.deal-media .scrim{position:absolute;inset:0;z-index:1;background:linear-gradient(180deg,rgba(2,16,10,.12) 0%,rgba(2,16,10,.3) 45%,rgba(2,16,10,.82) 100%);}
+.ds-viz .media-img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border-radius:inherit;}
+.ds-viz{position:relative;overflow:hidden;}
 .deal-media .auto-viz .svg-ic{stroke-width:1.2;filter:drop-shadow(0 0 22px rgba(0,255,140,.5));position:relative;z-index:1;}
 .deal-media .auto-viz .av-glow{position:absolute;width:190px;height:190px;border-radius:50%;background:radial-gradient(circle,rgba(0,255,140,.22),transparent 68%);}
 /* Aperçu du site (logo/favicon réel + domaine) quand un lien est fourni */
@@ -429,6 +436,8 @@ html.booting .screen.active{display:none;}
 
 .al-hint{font-size:12px;line-height:1.4;margin:-10px 0 16px;color:var(--muted);}
 .al-hint.ok{color:var(--green);} .al-hint.bad{color:#ff8fa2;}
+.pub-preview{margin:-6px 0 16px;}
+.pub-preview-img{width:100%;height:150px;object-fit:cover;border-radius:12px;border:1px solid var(--line-strong);display:block;}
 .ds-foot{display:flex;gap:8px;flex-wrap:wrap;margin-top:22px;padding-top:16px;border-top:1px solid var(--hair);}
 .ds-foot .validate{flex:1 1 auto;justify-content:center;}
 
@@ -900,6 +909,9 @@ textarea.al-input{resize:none;font-family:var(--sans);line-height:1.5;}
       <div class="al-cats" id="pubCats"></div>
       <textarea id="pubDesc" class="al-input" rows="2" placeholder="Décris le plan et le site concerné en une phrase…"></textarea>
       <textarea id="pubSteps" class="al-input" rows="3" placeholder="Comment en profiter — une étape par ligne (optionnel)"></textarea>
+      <input id="pubImage" class="al-input" oninput="checkPubImage(this.value)" placeholder="Image d'illustration — lien direct vers une photo (optionnel)">
+      <div class="al-hint" id="pubImageHint">Sans image, le symbole de la catégorie est utilisé.</div>
+      <div class="pub-preview" id="pubImagePreview"></div>
       <input id="pubVideo" class="al-input" oninput="checkPubVideo(this.value)" placeholder="Lien vidéo — YouTube, Vimeo, Dailymotion ou .mp4 (optionnel)">
       <div class="al-hint" id="pubVideoHint"></div>
       <button class="btn" id="pubSubmit" onclick="submitPublish(this)"><span class="ic" data-ic="plus"></span> Publier le plan</button>
@@ -1159,6 +1171,7 @@ function cardHTML(d,i){
       ${d.verified?`<div class="verif">${iconSVG('verified')} Fiable</div>`:`<div class="verif new">${iconSVG('clock')} Récent</div>`}</div>
     <div class="deal-media">
       <div class="auto-viz"><span class="av-glow"></span>${iconSVG(d.icon)}</div>
+      ${d.image?`<img class="media-img" src="${d.image}" alt="" loading="lazy" onerror="this.nextElementSibling&&this.nextElementSibling.remove();this.remove()"><div class="scrim"></div>`:''}
       ${d.domain?`<div class="site-src"><img class="fav" src="${faviconUrl(d.domain)}" alt="" onerror="this.remove()">${iconSVG('link')} ${d.domain}</div>`:``}
       <div class="expire">${iconSVG('clock')} ${d.exp}</div><div class="discount">${d.disc}</div></div>
     <div class="deal-body">
@@ -1370,8 +1383,8 @@ function setPubMode(edition){
                               : iconSVG('plus')+' Publier le plan';
 }
 function viderFormulaire(){
-  ['pubTitle','pubNow','pubOld','pubDisc','pubLink','pubDesc','pubSteps','pubVideo'].forEach(x=>document.getElementById(x).value='');
-  document.getElementById('pubCurrency').value='EUR'; pubSelCat=''; checkPubVideo(''); buildPubCats();
+  ['pubTitle','pubNow','pubOld','pubDisc','pubLink','pubDesc','pubSteps','pubVideo','pubImage'].forEach(x=>document.getElementById(x).value='');
+  document.getElementById('pubCurrency').value='EUR'; pubSelCat=''; checkPubVideo(''); checkPubImage(''); buildPubCats();
 }
 function openEdit(id){
   const d=DEALS.find(x=>x.id===id); if(!d) return;
@@ -1386,7 +1399,8 @@ function openEdit(id){
   document.getElementById('pubDesc').value=d.desc||'';
   document.getElementById('pubSteps').value=(d.steps||[]).join('\n');
   document.getElementById('pubVideo').value=d.video||'';
-  checkPubVideo(d.video||'');
+  document.getElementById('pubImage').value=d.image||'';
+  checkPubVideo(d.video||''); checkPubImage(d.image||'');
   /* Le prix contient déjà son symbole : « aucune » évite de le doubler. */
   document.getElementById('pubCurrency').value='NONE';
   document.getElementById('pubSheet').classList.add('show');
@@ -1414,6 +1428,23 @@ function openPublish(){
 function closePublish(){ document.getElementById('pubSheet').classList.remove('show'); }
 /* Prévient dès la saisie plutôt qu'après publication : un lien non reconnu
    produirait une carte avec un bouton « Regarder » qui ne lit rien. */
+/* Aperçu réel de l'image avant publication : le seul moyen fiable de savoir
+   si une URL est affichable est de la charger. On juge sur le résultat, pas
+   sur l'extension du fichier — beaucoup de CDN n'en ont pas. */
+function checkPubImage(v){
+  const hint=document.getElementById('pubImageHint'), box=document.getElementById('pubImagePreview');
+  if(!hint||!box) return;
+  const s=(v||'').trim();
+  box.innerHTML='';
+  if(!s){ hint.textContent='Sans image, le symbole de la catégorie est utilisé.'; hint.className='al-hint'; return; }
+  if(!/^https:\/\//i.test(s)){ hint.textContent='Le lien doit commencer par https:// — une image en http serait bloquée sur le site.'; hint.className='al-hint bad'; return; }
+  hint.textContent='Chargement de l\'aperçu…'; hint.className='al-hint';
+  const img=new Image();
+  img.className='pub-preview-img';
+  img.onload=()=>{ hint.textContent='Image valide — '+img.naturalWidth+'×'+img.naturalHeight+' px.'; hint.className='al-hint ok'; box.appendChild(img); };
+  img.onerror=()=>{ hint.textContent='Image introuvable ou non affichable. Vérifie que le lien pointe directement vers une photo.'; hint.className='al-hint bad'; };
+  img.src=s;
+}
 function checkPubVideo(v){
   const h=document.getElementById('pubVideoHint'); if(!h) return;
   const s=(v||'').trim();
@@ -1449,7 +1480,9 @@ function submitPublish(btn){
     now:avecDevise(val('pubNow'),devise)||'—',old:avecDevise(val('pubOld'),devise),
     desc:val('pubDesc')||'Nouveau plan partagé avec la communauté.',tags:[pubSelCat,'Nouveau'],votes:0,views:0,validated:0,verified:false,
     steps:(val('pubSteps')||'').split('\n').map(s=>s.trim()).filter(Boolean),video:val('pubVideo'),
-    link:val('pubLink'),domain:dom,image:dom?faviconUrl(dom):''};   /* MVP : image = og:image récupérée côté serveur depuis le lien */
+    /* Image choisie par l'auteur. Vide = le symbole de la catégorie est
+       conservé : un favicon étiré en pleine largeur était pire que rien. */
+    link:val('pubLink'),domain:dom,image:val('pubImage').trim()};
   /* La feuille reste ouverte jusqu'à la réponse du serveur : elle se fermait
      aussitôt, si bien que l'anneau n'était jamais visible et qu'un refus
      arrivait alors que l'utilisateur avait déjà quitté le formulaire.
@@ -1555,7 +1588,7 @@ function renderDeal(id){
   const steps=stepsFor(d), embed=ytEmbed(d.video);
   document.getElementById('dealBody').innerHTML=`
     <div class="ds-head">
-      <div class="ds-viz">${iconSVG(d.icon)}</div>
+      <div class="ds-viz">${iconSVG(d.icon)}${d.image?`<img class="media-img" src="${d.image}" alt="" onerror="this.remove()">`:''}</div>
       <div class="ds-h-txt">
         <span class="plan-badge ${b.cls}">${iconSVG(b.ic)} ${b.label}</span>
         <h3>${d.title}</h3>
