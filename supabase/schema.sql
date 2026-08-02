@@ -292,6 +292,18 @@ create policy deals_update on public.deals for update
   using      (author = (select auth.uid()) and status = 'live')
   with check (author = (select auth.uid()) and status = 'live');
 
+-- Colonnes de scoring et de modération retirées au client : views et validations
+-- sont maintenus par les triggers, verified et status par la modération, et le
+-- WITH CHECK ci-dessus valide la ligne sans regarder les colonnes touchées.
+-- author n'est absent que du grant UPDATE : il reste requis à l'insertion.
+revoke insert, update on public.deals from anon, authenticated;
+grant insert (author, cat, icon, title, price_now, price_old, discount, expires,
+              description, tags, link, domain, image, video, steps)
+  on public.deals to authenticated;
+grant update (cat, icon, title, price_now, price_old, discount, expires,
+              description, tags, link, domain, image, video, steps)
+  on public.deals to authenticated;
+
 -- Favoris / validations / alertes / notifications : chacun gère les siens
 drop policy if exists fav_all      on public.favorites;
 drop policy if exists val_all      on public.validations;

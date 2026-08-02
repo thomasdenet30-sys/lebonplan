@@ -29,7 +29,10 @@
       cat: d.cat, icon: d.icon, title: d.title, price_now: d.now, price_old: d.old,
       discount: d.disc, expires: d.exp, description: d.desc, tags: d.tags,
       link: d.link || null, domain: d.domain || null, image: d.image || null,
-      video: d.video || null, steps: d.steps || [], verified: !!d.verified
+      video: d.video || null, steps: d.steps || []
+      // verified/views/validations volontairement absents : colonnes non
+      // écrivables par le client (grant ciblé côté schéma), sinon l'insertion
+      // serait rejetée en « permission denied for column ».
     };
   }
 
