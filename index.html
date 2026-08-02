@@ -340,13 +340,6 @@ html.booting .screen.active{display:none;}
 /* MOBILE TABBAR */
 .tabbar{display:flex;align-items:center;justify-content:space-around;padding:12px 14px calc(14px + env(safe-area-inset-bottom));background:linear-gradient(0deg,var(--bg-2) 68%,transparent);border-top:1px solid var(--hair);z-index:40;}
 .tab{display:flex;flex-direction:column;align-items:center;gap:4px;font-size:10px;font-weight:600;color:var(--muted);cursor:pointer;transition:.15s;padding:4px 10px;border-radius:12px;}
-/* Six entrées depuis l'ajout de Favoris : on resserre sur les écrans étroits
-   pour que rien ne se chevauche ni ne parte hors du bord. */
-@media(max-width:430px){
-  .tabbar{padding-left:4px;padding-right:4px;}
-  .tab{padding:4px 5px;font-size:9.5px;gap:3px;}
-  .tab.fab{width:52px;height:52px;}
-}
 .tab .ic{font-size:21px;line-height:1;display:flex;} .tab.on{color:var(--green);} .tab.on .ic .svg-ic{filter:drop-shadow(var(--glow));}
 .tab.fab{position:relative;top:-16px;background:var(--green);color:#021b0f;width:56px;height:56px;border-radius:50%;justify-content:center;box-shadow:var(--glow);}
 .tab.fab .ic{font-size:26px;} .tab.fab .ic .svg-ic{stroke-width:2.4;}
@@ -830,7 +823,6 @@ textarea.al-input{resize:none;font-family:var(--sans);line-height:1.5;}
         <div class="tab on" data-view="feed" onclick="showView('feed')"><span class="ic" data-ic="spark"></span>Plans</div>
         <div class="tab" data-view="explore" onclick="showView('explore')"><span class="ic" data-ic="compass"></span>Explorer</div>
         <div class="tab fab" onclick="openPublish()"><span class="ic" data-ic="plus"></span></div>
-        <div class="tab" data-view="favoris" onclick="showView('favoris')"><span class="ic" data-ic="heart"></span>Favoris</div>
         <div class="tab" data-view="alerts" onclick="showView('alerts')"><span class="ic" data-ic="bell"><span class="tcount" id="tabAlerts">0</span></span>Alertes</div>
         <div class="tab" data-view="profile" onclick="showView('profile')"><span class="ic" data-ic="user"></span>Profil</div>
       </div>
