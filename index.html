@@ -910,7 +910,7 @@ textarea.al-input{resize:none;font-family:var(--sans);line-height:1.5;}
       <textarea id="pubDesc" class="al-input" rows="2" placeholder="Décris le plan et le site concerné en une phrase…"></textarea>
       <textarea id="pubSteps" class="al-input" rows="3" placeholder="Comment en profiter — une étape par ligne (optionnel)"></textarea>
       <input id="pubImage" class="al-input" oninput="checkPubImage(this.value)" placeholder="Image d'illustration — lien direct vers une photo (optionnel)">
-      <div class="al-hint" id="pubImageHint">Sans image, le symbole de la catégorie est utilisé.</div>
+      <div class="al-hint" id="pubImageHint">Laisse vide : la vignette de ta vidéo sera utilisée, sinon une photo libre de droit de la catégorie.</div>
       <div class="pub-preview" id="pubImagePreview"></div>
       <input id="pubVideo" class="al-input" oninput="checkPubVideo(this.value)" placeholder="Lien vidéo — YouTube, Vimeo, Dailymotion ou .mp4 (optionnel)">
       <div class="al-hint" id="pubVideoHint"></div>
@@ -1171,7 +1171,7 @@ function cardHTML(d,i){
       ${d.verified?`<div class="verif">${iconSVG('verified')} Fiable</div>`:`<div class="verif new">${iconSVG('clock')} Récent</div>`}</div>
     <div class="deal-media">
       <div class="auto-viz"><span class="av-glow"></span>${iconSVG(d.icon)}</div>
-      ${d.image?`<img class="media-img" src="${d.image}" alt="" loading="lazy" onerror="this.nextElementSibling&&this.nextElementSibling.remove();this.remove()"><div class="scrim"></div>`:''}
+      ${(()=>{const src=illustration(d); return src?`<img class="media-img" src="${src}" alt="" loading="lazy" onerror="imageRatée(this)"><div class="scrim"></div>`:'';})()}
       ${d.domain?`<div class="site-src"><img class="fav" src="${faviconUrl(d.domain)}" alt="" onerror="this.remove()">${iconSVG('link')} ${d.domain}</div>`:``}
       <div class="expire">${iconSVG('clock')} ${d.exp}</div><div class="discount">${d.disc}</div></div>
     <div class="deal-body">
@@ -1436,7 +1436,7 @@ function checkPubImage(v){
   if(!hint||!box) return;
   const s=(v||'').trim();
   box.innerHTML='';
-  if(!s){ hint.textContent='Sans image, le symbole de la catégorie est utilisé.'; hint.className='al-hint'; return; }
+  if(!s){ hint.textContent='Laisse vide : la vignette de ta vidéo sera utilisée, sinon une photo libre de droit de la catégorie.'; hint.className='al-hint'; return; }
   if(!/^https:\/\//i.test(s)){ hint.textContent='Le lien doit commencer par https:// — une image en http serait bloquée sur le site.'; hint.className='al-hint bad'; return; }
   hint.textContent='Chargement de l\'aperçu…'; hint.className='al-hint';
   const img=new Image();
@@ -1566,6 +1566,49 @@ function stepsFor(d){
    ne reconnaissait que « watch?v= » et « youtu.be » : shorts, live, embed,
    m.youtube, Dailymotion et les fichiers vidéo directs échouaient, et le plan
    renvoyait alors vers un onglet externe. */
+/* ===== ILLUSTRATION AUTOMATIQUE =====
+   Priorité : image choisie par l'auteur > vignette de la vidéo > photo libre
+   de droit de la catégorie. Aucune fiche ne reste sans visuel.
+   Les photos viennent d'Unsplash (licence libre, usage commercial autorisé,
+   sans attribution obligatoire) ; les 14 URL ont été vérifiées une à une. */
+const U='https://images.unsplash.com/photo-', Q='?w=900&q=80&auto=format&fit=crop';
+const PHOTOS={
+  'Voyage':      [U+'1507525428034-b723cf961d3e'+Q, U+'1436491865332-7a61a109cc05'+Q],
+  'Codes promo': [U+'1441986300917-64674bd600d8'+Q, U+'1472851294608-062f824d29cc'+Q],
+  'Tech':        [U+'1498049794561-7780e7231661'+Q, U+'1517336714731-489689fd1ca8'+Q],
+  'Cashback':    [U+'1554224155-6726b3ff858f'+Q,    U+'1526304640581-d334cdbbf45e'+Q],
+  'Officiel':    [U+'1497366754035-f200968a6e72'+Q, U+'1450101499163-c8848c66ca85'+Q],
+  'Alternatives':[U+'1522869635100-9f4c5e86aa37'+Q, U+'1593784991095-a205069470b6'+Q],
+  'Failles':     [U+'1509023464722-18d996393ca8'+Q, U+'1519389950473-47ba0277781c'+Q],
+};
+/* Vignette déduite de l'identifiant de la vidéo — aucun appel serveur. */
+function vignetteVideo(url){
+  const u=(url||'').trim(); if(!u) return '';
+  let m=u.match(/(?:youtube(?:-nocookie)?\.com\/(?:watch\?(?:[^#]*&)?v=|embed\/|shorts\/|live\/|v\/)|youtu\.be\/)([\w-]{6,})/i);
+  if(m) return 'https://img.youtube.com/vi/'+m[1]+'/maxresdefault.jpg';
+  m=u.match(/vimeo\.com\/(?:video\/)?(\d+)/i);
+  if(m) return 'https://vumbnail.com/'+m[1]+'.jpg';
+  m=u.match(/(?:dailymotion\.com\/video\/|dai\.ly\/)([\w]+)/i);
+  if(m) return 'https://www.dailymotion.com/thumbnail/video/'+m[1];
+  return '';
+}
+function illustration(d){
+  if(d.image) return d.image;
+  const v=vignetteVideo(d.video); if(v) return v;
+  const lot=PHOTOS[d.cat]; if(!lot||!lot.length) return '';
+  return lot[Math.abs(d.id||0)%lot.length];      /* stable pour un même plan */
+}
+/* maxresdefault n'existe pas pour toutes les vidéos YouTube : on retombe sur
+   hqdefault, toujours disponible, avant d'abandonner et de rendre le symbole. */
+function imageRatée(img){
+  const src=img.getAttribute('src')||'';
+  if(/img\.youtube\.com\/vi\/[\w-]+\/maxresdefault\.jpg/.test(src)){
+    img.setAttribute('src',src.replace('maxresdefault','hqdefault')); return;
+  }
+  const scrim=img.nextElementSibling;
+  if(scrim&&scrim.classList.contains('scrim')) scrim.remove();
+  img.remove();
+}
 function ytEmbed(url){
   const u=(url||'').trim(); if(!u) return '';
   let m=u.match(/(?:youtube(?:-nocookie)?\.com\/(?:watch\?(?:[^#]*&)?v=|embed\/|shorts\/|live\/|v\/)|youtu\.be\/)([\w-]{6,})/i);
@@ -1588,7 +1631,7 @@ function renderDeal(id){
   const steps=stepsFor(d), embed=ytEmbed(d.video);
   document.getElementById('dealBody').innerHTML=`
     <div class="ds-head">
-      <div class="ds-viz">${iconSVG(d.icon)}${d.image?`<img class="media-img" src="${d.image}" alt="" onerror="this.remove()">`:''}</div>
+      <div class="ds-viz">${iconSVG(d.icon)}${(()=>{const s=illustration(d); return s?`<img class="media-img" src="${s}" alt="" onerror="imageRatée(this)">`:'';})()}</div>
       <div class="ds-h-txt">
         <span class="plan-badge ${b.cls}">${iconSVG(b.ic)} ${b.label}</span>
         <h3>${d.title}</h3>
