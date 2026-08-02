@@ -339,6 +339,10 @@ html.booting .screen.active{display:none;}
    minimale. Elle se comprime et se tronque désormais. */
 .mini-deal{min-width:0;}
 .mini-deal .st{font-size:10px;font-weight:800;letter-spacing:.05em;padding:5px 9px;border-radius:8px;white-space:nowrap;flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;}
+.mini-deal.cliquable{cursor:pointer;transition:border-color .18s,background .18s;}
+.mini-deal.cliquable:hover{border-color:var(--line-strong);background:rgba(0,255,140,.06);}
+.mini-deal button.st{font-family:var(--sans);border:1px solid var(--line-strong);cursor:pointer;}
+.mini-deal button.st:hover{background:var(--green);color:#021b0f;}
 .st.live{color:var(--green);background:rgba(0,255,140,.1);} .st.dead{color:var(--danger);background:rgba(255,77,106,.1);}
 
 /* MOBILE TABBAR */
@@ -1178,6 +1182,17 @@ function renderGrid(el,list){
   el.innerHTML='';
   list.forEach((d,i)=>{const c=document.createElement('div');c.className='card'+(d.id===momentId?' moment':'');c.dataset.id=d.id;c.style.animationDelay=(i*0.06)+'s';c.innerHTML=cardHTML(d,i);el.appendChild(c);});
 }
+/* Depuis « Plans postés » : ouvre la fiche, qui porte Modifier et Supprimer.
+   Un plan retiré n'est plus dans DEALS (getDeals ne renvoie que les « live »),
+   d'où le message explicite plutôt qu'un clic sans effet. */
+function ouvrirMonPlan(id,status){
+  if(status!=='live'){
+    toast('warn','Plan retiré','Ce plan a été retiré après signalement : il n\'est plus consultable ni modifiable.');
+    return;
+  }
+  if(!DEALS.some(x=>x.id===id)){ toast('warn','Plan indisponible','Recharge la page pour rafraîchir la liste.'); return; }
+  openDeal(id);
+}
 /* ===== PROFIL (chiffres réels, aucun placeholder) ===== */
 async function renderProfile(){
   if(!(window.LBP&&LBP.enabled&&LBP._user)) return;
@@ -1208,11 +1223,14 @@ async function renderProfile(){
 
   const box=document.getElementById('myDeals');
   if(box) box.innerHTML = mes.length ? mes.map(d=>`
-    <div class="mini-deal"${d.status!=='live'?' style="opacity:.55"':''}>
+    <div class="mini-deal${d.status==='live'?' cliquable':''}"${d.status!=='live'?' style="opacity:.55"':''}
+         onclick="ouvrirMonPlan(${d.id},'${d.status}')">
       <div class="thumb">${iconSVG(d.icon||catIc(d.cat))}</div>
       <div class="info"><h5>${d.title}</h5>
         <p>${fmtViews(d.views||0)} vues · ${d.validations||0} validations · ${ancienneté(d.created_at)}</p></div>
-      <div class="st ${d.status==='live'?'live':'dead'}">${d.status==='live'?'EN LIGNE':'RETIRÉ'}</div>
+      ${d.status==='live'
+        ? `<button class="st live" onclick="event.stopPropagation();openEdit(${d.id})">MODIFIER</button>`
+        : `<div class="st dead">RETIRÉ</div>`}
     </div>`).join('')
     : '<p class="trust-note">Tu n\'as pas encore publié de plan.</p>';
 }
