@@ -387,9 +387,16 @@ revoke insert, update, delete on public.reports from anon, authenticated;
 drop policy if exists codes_read on public.access_codes;
 create policy codes_read on public.access_codes for select using (true);
 
--- Realtime sur les nouveaux plans (optionnel)
+-- Realtime sur les nouveaux plans (optionnel).
+-- La publication supabase_realtime appartient à supabase_admin : selon le
+-- projet, l'utilisateur du SQL Editor n'a pas le droit de la modifier. Comme
+-- l'éditeur exécute tout le script dans UNE transaction, une erreur ici
+-- annulerait la totalité du schéma — d'où ces trois cas rattrapés.
 do $$
 begin
   alter publication supabase_realtime add table public.deals;
-exception when duplicate_object then null;   -- déjà dans la publication
+exception
+  when duplicate_object     then null;  -- déjà dans la publication
+  when undefined_object     then raise notice 'publication supabase_realtime absente : realtime ignoré';
+  when insufficient_privilege then raise notice 'droits insuffisants sur supabase_realtime : realtime ignoré, à activer depuis le dashboard';
 end $$;
