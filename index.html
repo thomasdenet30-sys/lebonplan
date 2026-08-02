@@ -1326,21 +1326,25 @@ function submitPublish(btn){
     desc:val('pubDesc')||'Nouveau plan partagé avec la communauté.',tags:[pubSelCat,'Nouveau'],votes:0,views:0,validated:0,verified:false,
     steps:(val('pubSteps')||'').split('\n').map(s=>s.trim()).filter(Boolean),video:val('pubVideo'),
     link:val('pubLink'),domain:dom,image:dom?faviconUrl(dom):''};   /* MVP : image = og:image récupérée côté serveur depuis le lien */
-  DEALS.unshift(d);
+  /* La feuille reste ouverte jusqu'à la réponse du serveur : elle se fermait
+     aussitôt, si bien que l'anneau n'était jamais visible et qu'un refus
+     arrivait alors que l'utilisateur avait déjà quitté le formulaire.
+     En cas d'échec on la laisse ouverte, les champs remplis, pour réessayer. */
   setLoading(btn,true);
   LBP.api.insertDeal(d).then(id=>{                     // → Supabase (id BDD + trigger d'alertes serveur)
-    if(!id){                                           // refus serveur : on retire la carte optimiste
-      const i=DEALS.indexOf(d); if(i>=0) DEALS.splice(i,1);
+    if(!id){
       toast('warn','Publication refusée','Le serveur a rejeté le plan — compte non vérifié ?');
+      return;
     }
+    DEALS.unshift(d);
+    momentId=computeMoment();
+    evaluateNewDeal(d);                                // alertes locales ; côté serveur via trigger
+    ['pubTitle','pubNow','pubOld','pubDisc','pubLink','pubDesc','pubSteps','pubVideo'].forEach(x=>document.getElementById(x).value=''); pubSelCat=''; checkPubVideo('');
+    closePublish();
+    toast('good','Plan publié','Ton plan est en ligne — les alertes concernées ont été déclenchées.');
+    showView('feed');
     renderFeed();
   }).finally(()=>setLoading(btn,false));
-  momentId=computeMoment();
-  evaluateNewDeal(d);                                // les alertes concernées se déclenchent (local ; serveur via trigger)
-  ['pubTitle','pubNow','pubOld','pubDisc','pubLink','pubDesc','pubSteps','pubVideo'].forEach(x=>document.getElementById(x).value=''); pubSelCat=''; checkPubVideo('');
-  closePublish();
-  toast('good','Plan publié','Ton plan est en ligne — les alertes concernées ont été déclenchées.');
-  showView('feed');
 }
 function toggleAlert(id){ const a=alerts.find(x=>x.id===id); if(a){a.active=!a.active;renderAlerts();if(window.LBP&&LBP.enabled)LBP.api.setAlertActive(id,a.active);} }
 function deleteAlert(id){ alerts=alerts.filter(x=>x.id!==id); renderAlerts(); if(window.LBP&&LBP.enabled)LBP.api.deleteAlert(id); toast('good','Alerte supprimée','Tu ne recevras plus cette alerte.'); }
