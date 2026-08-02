@@ -5,8 +5,9 @@
     d'environnement de ton hébergeur — voir README.)
    ============================================================ */
 window.LBP_CONFIG = {
-  // ← passe à true une fois supabase/schema.sql appliqué au projet
-  USE_SUPABASE: false,
+  // schema.sql appliqué le 2026-08-02 : les 9 tables/vues répondent et les RLS
+  // ont été vérifiées en anonyme (lecture OK, écritures refusées).
+  USE_SUPABASE: true,
   SUPABASE_URL: 'https://trwobwbrrmjgaqzurbaa.supabase.co',
   // Clé publishable : conçue pour le navigateur, elle ne donne accès qu'à ce
   // que les RLS autorisent. Jamais de service_role / secret key ici.
