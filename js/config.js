@@ -12,5 +12,7 @@ window.LBP_CONFIG = {
   // Clé publishable : conçue pour le navigateur, elle ne donne accès qu'à ce
   // que les RLS autorisent. Jamais de service_role / secret key ici.
   SUPABASE_ANON_KEY: 'sb_publishable_vaxudx8Owu0FQCrrYgvi4g_BopQyRZa',
-  ACCESS_CODE_FALLBACK: '2024',      // code d'accès de démo si Supabase est off
+  ACCESS_CODE_FALLBACK: '1984',      // non lu par le code : le mode démo utilise
+                                     // DEMO_CODE dans index.html, et Supabase la
+                                     // table access_codes. Gardé par cohérence.
 };

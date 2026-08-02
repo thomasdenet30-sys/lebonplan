@@ -44,7 +44,7 @@ create table if not exists public.access_codes (
   label      text,
   created_at timestamptz not null default now()
 );
-insert into public.access_codes (code, label) values ('2024', 'Code de lancement')
+insert into public.access_codes (code, label) values ('1984', 'Code de lancement')
   on conflict (code) do nothing;
 
 -- ------------------------------------------------------------
