@@ -177,7 +177,11 @@ html.booting .screen.active{display:none;}
 /* ============================================================
    APP SHELL
    ============================================================ */
-.app{flex:1;display:grid;grid-template-columns:1fr;min-height:0;position:relative;}
+/* Sans grid-template-rows, les deux lignes sont en « auto » et se partagent
+   l'espace restant à parts égales : la barre de navigation enflait jusqu'à
+   244 px dès que le contenu était court, remontant tout l'écran. Le contenu
+   prend la place, la barre sa hauteur naturelle. */
+.app{flex:1;display:grid;grid-template-columns:1fr;grid-template-rows:1fr auto;min-height:0;position:relative;}
 
 /* SIDEBAR (desktop) */
 .side{display:none;flex-direction:column;padding:26px 18px;border-right:1px solid var(--hair);background:linear-gradient(180deg,var(--bg-2),var(--bg));gap:5px;}
@@ -334,7 +338,7 @@ html.booting .screen.active{display:none;}
 .st.live{color:var(--green);background:rgba(0,255,140,.1);} .st.dead{color:var(--danger);background:rgba(255,77,106,.1);}
 
 /* MOBILE TABBAR */
-.tabbar{display:flex;justify-content:space-around;padding:12px 14px calc(14px + env(safe-area-inset-bottom));background:linear-gradient(0deg,var(--bg-2) 68%,transparent);border-top:1px solid var(--hair);z-index:40;}
+.tabbar{display:flex;align-items:center;justify-content:space-around;padding:12px 14px calc(14px + env(safe-area-inset-bottom));background:linear-gradient(0deg,var(--bg-2) 68%,transparent);border-top:1px solid var(--hair);z-index:40;}
 .tab{display:flex;flex-direction:column;align-items:center;gap:4px;font-size:10px;font-weight:600;color:var(--muted);cursor:pointer;transition:.15s;padding:4px 10px;border-radius:12px;}
 /* Six entrées depuis l'ajout de Favoris : on resserre sur les écrans étroits
    pour que rien ne se chevauche ni ne parte hors du bord. */
