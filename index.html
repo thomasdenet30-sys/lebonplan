@@ -1067,11 +1067,15 @@ const voteState={};
 let currentCat='', feedQuery='', exCat='', alSelCat='', pubSelCat='';
 let alerts=[{id:1,keyword:'vol',cat:'Voyage',active:true},{id:2,keyword:'',cat:'Failles',active:true}];
 let notifications=[];
-let alSeq=100, notifSeq=1000, dealSeq=14, inited=false;
+/* dealSeq très au-dessus des identifiants de la base : l'id local n'est que
+   provisoire, le temps que l'insertion renvoie le vrai. */
+let alSeq=100, notifSeq=1000, dealSeq=1e9, inited=false;
 
 /* ===== RÈGLE PLAN DU MOMENT (vues × validations) ===== */
 function planScore(d){ return d.views + d.validated*25 + d.votes*2; }
-function computeMoment(){ let best=DEALS[0]; DEALS.forEach(d=>{ if(planScore(d)>planScore(best)) best=d; }); return best.id; }
+/* DEALS part vide depuis la suppression du mode démo : sans ce garde, l'appel
+   au chargement levait et interrompait TOUT le script inline. */
+function computeMoment(){ if(!DEALS.length) return null; let best=DEALS[0]; DEALS.forEach(d=>{ if(planScore(d)>planScore(best)) best=d; }); return best.id; }
 let momentId=computeMoment();
 function fmtViews(n){ return n>=1000?(n/1000).toFixed(1).replace('.',',')+'k':(''+n); }
 function planBadge(d){
@@ -1141,7 +1145,8 @@ function onFeedSearch(v){ feedQuery=v; renderFeed(); }
 function vote(id,dir,btn){
   const prev=voteState[id]||0; const next=prev===dir?0:dir; voteState[id]=next;
   const wrap=btn.parentElement; wrap.querySelector('.up').classList.toggle('on',next===1); wrap.querySelector('.down').classList.toggle('on',next===-1);
-  const base=DEALS.find(d=>d.id===id).votes; const cnt=wrap.querySelector('.cnt'); cnt.textContent=fmtK(base+next); cnt.animate([{transform:'scale(1.35)'},{transform:'scale(1)'}],{duration:220});
+  const cible=DEALS.find(d=>d.id===id); if(!cible) return;   /* carte devenue obsolète après une hydratation */
+  const base=cible.votes; const cnt=wrap.querySelector('.cnt'); cnt.textContent=fmtK(base+next); cnt.animate([{transform:'scale(1.35)'},{transform:'scale(1)'}],{duration:220});
 }
 
 /* ===== FAVORIS ===== */
