@@ -411,6 +411,18 @@ html.booting .screen.active{display:none;}
 .ds-video .dv-label{font-size:13px;color:var(--ink-2);font-weight:600;}
 .ds-video.playing{cursor:default;background:#000;}
 .ds-video iframe,.ds-video video{position:absolute;inset:0;width:100%;height:100%;border:0;background:#000;}
+/* État de chargement commun à tous les CTA : le libellé s'efface et laisse la
+   place à un anneau, le bouton n'est plus cliquable — l'utilisateur voit que
+   quelque chose est en cours au lieu d'attendre devant un bouton inerte. */
+.is-loading{position:relative;color:transparent!important;pointer-events:none;}
+.is-loading>*{visibility:hidden;}
+.is-loading::after{content:'';position:absolute;top:50%;left:50%;width:18px;height:18px;margin:-9px 0 0 -9px;
+  border-radius:50%;border:2px solid rgba(2,27,15,.3);border-top-color:#021b0f;animation:ctaspin .7s linear infinite;}
+.btn.ghost.is-loading::after,.act-btn.is-loading::after,.reason button.is-loading::after{
+  border-color:rgba(0,255,140,.22);border-top-color:var(--green);}
+@keyframes ctaspin{to{transform:rotate(360deg);}}
+@media(prefers-reduced-motion:reduce){.is-loading::after{animation-duration:2s;}}
+
 .al-hint{font-size:12px;line-height:1.4;margin:-10px 0 16px;color:var(--muted);}
 .al-hint.ok{color:var(--green);} .al-hint.bad{color:#ff8fa2;}
 .ds-foot{display:flex;gap:8px;flex-wrap:wrap;margin-top:22px;padding-top:16px;border-top:1px solid var(--hair);}
@@ -851,9 +863,9 @@ textarea.al-input{resize:none;font-family:var(--sans);line-height:1.5;}
       <h3>Bannir ce plan</h3>
       <p>Un plan banni et confirmé est retiré automatiquement. Son auteur est averti et reçoit un point « faux plan » (bannissement du profil au 3ᵉ).</p>
       <div class="reason">
-        <button onclick="confirmReport('mensonge')"><span class="rico"><span class="ic" data-ic="alert"></span></span> Mensonge ou fausse promo</button>
-        <button onclick="confirmReport('obsolète')"><span class="rico"><span class="ic" data-ic="clock"></span></span> Plan expiré ou obsolète</button>
-        <button onclick="confirmReport('arnaque')"><span class="rico"><span class="ic" data-ic="shield"></span></span> Arnaque ou lien douteux</button>
+        <button onclick="confirmReport('mensonge',this)"><span class="rico"><span class="ic" data-ic="alert"></span></span> Mensonge ou fausse promo</button>
+        <button onclick="confirmReport('obsolète',this)"><span class="rico"><span class="ic" data-ic="clock"></span></span> Plan expiré ou obsolète</button>
+        <button onclick="confirmReport('arnaque',this)"><span class="rico"><span class="ic" data-ic="shield"></span></span> Arnaque ou lien douteux</button>
       </div>
       <button class="btn ghost" onclick="closeSheet()">Annuler</button>
     </div>
@@ -887,7 +899,7 @@ textarea.al-input{resize:none;font-family:var(--sans);line-height:1.5;}
       <textarea id="pubSteps" class="al-input" rows="3" placeholder="Comment en profiter — une étape par ligne (optionnel)"></textarea>
       <input id="pubVideo" class="al-input" oninput="checkPubVideo(this.value)" placeholder="Lien vidéo — YouTube, Vimeo, Dailymotion ou .mp4 (optionnel)">
       <div class="al-hint" id="pubVideoHint"></div>
-      <button class="btn" onclick="submitPublish()"><span class="ic" data-ic="plus"></span> Publier le plan</button>
+      <button class="btn" onclick="submitPublish(this)"><span class="ic" data-ic="plus"></span> Publier le plan</button>
       <button class="btn ghost" onclick="closePublish()" style="margin-top:10px">Annuler</button>
     </div>
   </div>
@@ -1015,21 +1027,31 @@ function authMode(m){
 }
 function authErr(m){ document.getElementById('authErr').textContent=m||''; }
 function enterApp(){ go('s-app'); showView('feed'); }
+/* Bascule l'état de chargement d'un CTA. Garde la largeur du bouton (le
+   libellé reste en place, simplement invisible) pour éviter tout saut. */
+function setLoading(el,on){
+  if(!el) return;
+  el.classList.toggle('is-loading',!!on);
+  if('disabled' in el) el.disabled=!!on;
+  el.setAttribute('aria-busy',on?'true':'false');
+}
 function authTr(e){ const m=(e&&e.message)||''; if(/Invalid login/i.test(m))return 'Email ou mot de passe incorrect.'; if(/already registered|already been/i.test(m))return 'Cet email a déjà un compte.'; if(/confirm/i.test(m))return 'Vérifie ta boîte mail pour confirmer ton compte, puis connecte-toi.'; if(/at least 6/i.test(m))return 'Mot de passe : 6 caractères minimum.'; return m||"Erreur d'authentification."; }
 function authSubmit(){
   if(!(window.LBP&&LBP.enabled)){ authErr('Service indisponible. Recharge la page.'); return; }
   const email=val('authEmail'), pass=val('authPass'), uname=val('authUser');
   if(!email||!pass){ authErr('Renseigne ton email et ton mot de passe.'); return; }
-  authErr(''); const btn=document.getElementById('authBtn'); btn.disabled=true; btn.style.opacity=.6;
+  authErr(''); const btn=document.getElementById('authBtn'); setLoading(btn,true);
   const pr = authCurMode==='signup' ? LBP.api.signUp(email,pass,uname||email.split('@')[0]) : LBP.api.signIn(email,pass);
   pr.then(async(r)=>{
     if(authCurMode==='signup' && r && !r.session){ authErr('Compte créé ! Vérifie ta boîte mail pour confirmer, puis connecte-toi.'); authMode('login'); return; }
     await LBP.hydrate(); enterApp();
-  }).catch(e=>authErr(authTr(e))).finally(()=>{ btn.disabled=false; btn.style.opacity=1; });
+  }).catch(e=>authErr(authTr(e))).finally(()=>{ setLoading(btn,false); });
 }
 function authGuest(){
   if(!(window.LBP&&LBP.enabled)){ authErr('Service indisponible. Recharge la page.'); return; }
-  LBP.api.signInAnonymous().then(async()=>{ await LBP.hydrate(); enterApp(); }).catch(e=>authErr(authTr(e)));
+  const btn=document.querySelector('[onclick="authGuest()"]'); setLoading(btn,true); authErr('');
+  LBP.api.signInAnonymous().then(async()=>{ await LBP.hydrate(); enterApp(); })
+    .catch(e=>authErr(authTr(e))).finally(()=>setLoading(btn,false));
 }
 function logout(){ if(window.LBP&&LBP.enabled){ LBP.api.signOut().then(()=>location.reload()); } else location.reload(); }
 
@@ -1287,7 +1309,7 @@ function checkPubVideo(v){
   if(ytEmbed(s)){ h.textContent='Vidéo reconnue — elle se lira directement sur LEBONPLAN.'; h.className='al-hint ok'; }
   else { h.textContent='Lien non reconnu. Accepté : YouTube, Vimeo, Dailymotion, ou un fichier .mp4 / .webm.'; h.className='al-hint bad'; }
 }
-function submitPublish(){
+function submitPublish(btn){
   const title=val('pubTitle');
   if(!title || !pubSelCat){ toast('warn','Champs manquants','Ajoute au moins un titre et une catégorie.'); return; }
   const vid=val('pubVideo').trim();
@@ -1305,13 +1327,14 @@ function submitPublish(){
     steps:(val('pubSteps')||'').split('\n').map(s=>s.trim()).filter(Boolean),video:val('pubVideo'),
     link:val('pubLink'),domain:dom,image:dom?faviconUrl(dom):''};   /* MVP : image = og:image récupérée côté serveur depuis le lien */
   DEALS.unshift(d);
+  setLoading(btn,true);
   LBP.api.insertDeal(d).then(id=>{                     // → Supabase (id BDD + trigger d'alertes serveur)
     if(!id){                                           // refus serveur : on retire la carte optimiste
       const i=DEALS.indexOf(d); if(i>=0) DEALS.splice(i,1);
       toast('warn','Publication refusée','Le serveur a rejeté le plan — compte non vérifié ?');
     }
     renderFeed();
-  });
+  }).finally(()=>setLoading(btn,false));
   momentId=computeMoment();
   evaluateNewDeal(d);                                // les alertes concernées se déclenchent (local ; serveur via trigger)
   ['pubTitle','pubNow','pubOld','pubDisc','pubLink','pubDesc','pubSteps','pubVideo'].forEach(x=>document.getElementById(x).value=''); pubSelCat=''; checkPubVideo('');
@@ -1335,7 +1358,17 @@ function validateDeal(id,btn){
   if(validatedByUser.has(id)){ toast('good','Déjà validé','Tu as déjà confirmé que ce plan fonctionne. Merci !'); return; }
   validatedByUser.add(id);
   const d=DEALS.find(x=>x.id===id); if(d) d.validated++;
-  if(window.LBP&&LBP.enabled) LBP.api.addValidation(id);
+  /* rerenderCurrent() recrée le bouton : on montre l'anneau le temps de
+     l'aller-retour, puis on redessine seulement une fois le serveur revenu. */
+  if(window.LBP&&LBP.enabled){
+    setLoading(btn,true);
+    Promise.resolve(LBP.api.addValidation(id)).finally(()=>{
+      momentId=computeMoment();
+      toast('good','Merci pour ta validation','Ton « utilisé et validé » renforce ce plan et son badge.');
+      rerenderCurrent();
+    });
+    return;
+  }
   momentId=computeMoment();
   toast('good','Merci pour ta validation','Ton « utilisé et validé » renforce ce plan et son badge.');
   rerenderCurrent();
@@ -1427,15 +1460,20 @@ function openBan(id,btn){ reportCard=btn?btn.closest('.card'):null; document.get
 function openBanById(id){ reportCard=document.querySelector('.card[data-id=\"'+id+'\"]'); document.getElementById('reportSheet').classList.add('show'); }
 function closeSheet(){ document.getElementById('reportSheet').classList.remove('show'); }
 document.getElementById('reportSheet').addEventListener('click',e=>{ if(e.target.id==='reportSheet') closeSheet(); });
-async function confirmReport(reason){
-  closeSheet(); const card=reportCard; if(!card)return;
+async function confirmReport(reason,btn){
+  const card=reportCard; if(!card){ closeSheet(); return; }
   const id=card.dataset.id?+card.dataset.id:null;
   let res;
+  /* La feuille reste ouverte pendant l'appel : sans ça le bouton disparaissait
+     avant même d'avoir pu montrer qu'il travaillait. */
   if(window.LBP&&LBP.enabled&&id){
+    setLoading(btn,true);
     res=await LBP.api.reportDeal(id,reason);
+    setLoading(btn,false); closeSheet();
     if(!res){ toast('warn','Signalement impossible','Réessaie dans un instant.'); return; }
     if(res.error){ toast('warn','Signalement refusé',res.error); return; }
   }else{
+    closeSheet();
     toast('warn','Signalement impossible','Service indisponible. Recharge la page.');
     return;
   }
