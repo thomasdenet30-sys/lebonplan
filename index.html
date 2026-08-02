@@ -885,11 +885,20 @@ function checkCode(){
     setTimeout(()=>{ afterUnlock(); },620);                                 // bascule DERRIÈRE le voile encore opaque
     setTimeout(()=>{ document.getElementById('burst').classList.remove('go'); code='';renderDots();hint.textContent="Code d'accès · 4 chiffres";hint.classList.remove('bad'); },1750);
   };
+  const indispo=(msg)=>{ if(!fini())return;
+    dots.forEach(d=>d.classList.add('err'));
+    hint.textContent=msg; hint.classList.add('bad');
+    clearTimeout(resetTimer);
+    resetTimer=setTimeout(()=>{ resetTimer=null; clearCodeError(); },1500); };
   if(window.LBP&&LBP.enabled){                                              // vérifie via la table access_codes
     hint.textContent="Vérification…"; hint.classList.remove('bad');
-    LBP.api.verifyAccessCode(code).then(ok=> ok?proceed():bad()).catch(()=>bad());
-  } else {                                                                  // démo : code officiel ou tout code à 4 chiffres
-    if(code===DEMO_CODE||code.length===4) proceed(); else bad();
+    LBP.api.verifyAccessCode(code)
+      .then(ok=> ok?proceed():bad())
+      .catch(()=> indispo("Connexion impossible. Vérifie ta connexion et réessaie."));
+  } else if(window.LBP&&LBP.initFailed){                                    // CDN injoignable : on n'ouvre pas la porte
+    indispo("Service momentanément indisponible. Recharge la page.");
+  } else {                                                                  // démo assumée (USE_SUPABASE=false)
+    if(code===DEMO_CODE) proceed(); else bad();
   }
 }
 function afterUnlock(){

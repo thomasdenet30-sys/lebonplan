@@ -82,6 +82,9 @@
     /* ----- Code d'accès (table access_codes) ----- */
     async verifyAccessCode(code) {
       var out = await sb().from('access_codes').select('code').eq('code', code).eq('active', true).maybeSingle();
+      // Une panne réseau n'est pas un code faux : on lève, l'appelant distingue
+      // les deux cas. Sinon le visiteur lit « Code invalide » avec le bon code.
+      if (out.error) { console.warn('[LEBONPLAN] verifyAccessCode', out.error); throw out.error; }
       return !!(out.data);
     },
 
