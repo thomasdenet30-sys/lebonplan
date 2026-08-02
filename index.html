@@ -493,6 +493,17 @@ html.booting .screen.active{display:none;}
 .switch.on::after{left:20px;background:var(--green);box-shadow:var(--glow);}
 
 .main.nofeedbar .cats,.main.nofeedbar .search{display:none;}
+/* Page Plans sur mobile : fond dégradé vert très sombre vers le noir. Il
+   masque l'aurore verte animée derrière le fil, qui écrasait le contraste des
+   cartes — celles-ci sont translucides (--panel) et ressortent sur du noir.
+   .main:not(.nofeedbar) ne vise que la vue Plans ; au-delà de 960 px la
+   barre latérale reprend la main et le fond d'origine est conservé. */
+@media(max-width:959px){
+  .main:not(.nofeedbar) .content{
+    background:linear-gradient(180deg,#05170e 0%,#020a06 46%,#000 100%);
+  }
+  .main:not(.nofeedbar) .card{border-color:rgba(0,255,140,.18);}
+}
 
 /* ============ NOTIFICATIONS ============ */
 .notif-list{padding:0 16px;display:flex;flex-direction:column;gap:10px;}
