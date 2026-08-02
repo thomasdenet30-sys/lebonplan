@@ -55,7 +55,14 @@
       return L._user;
     },
     async signUp(email, password, username) {
-      var out = await sb().auth.signUp({ email: email, password: password, options: { data: { username: username } } });
+      // Sans emailRedirectTo, le lien de confirmation renvoie vers la « Site URL »
+      // du projet Supabase — http://localhost:3000 par défaut, donc une page morte.
+      // L'adresse doit aussi figurer dans les Redirect URLs du dashboard, sinon
+      // Supabase l'ignore et retombe sur la Site URL.
+      var out = await sb().auth.signUp({
+        email: email, password: password,
+        options: { data: { username: username }, emailRedirectTo: location.origin + location.pathname }
+      });
       if (out.error) throw out.error;
       L._user = out.data.user;
       return out.data;                 // data.session peut être null si confirmation email requise
