@@ -336,6 +336,13 @@ html.booting .screen.active{display:none;}
 /* MOBILE TABBAR */
 .tabbar{display:flex;justify-content:space-around;padding:12px 14px calc(14px + env(safe-area-inset-bottom));background:linear-gradient(0deg,var(--bg-2) 68%,transparent);border-top:1px solid var(--hair);z-index:40;}
 .tab{display:flex;flex-direction:column;align-items:center;gap:4px;font-size:10px;font-weight:600;color:var(--muted);cursor:pointer;transition:.15s;padding:4px 10px;border-radius:12px;}
+/* Six entrées depuis l'ajout de Favoris : on resserre sur les écrans étroits
+   pour que rien ne se chevauche ni ne parte hors du bord. */
+@media(max-width:430px){
+  .tabbar{padding-left:4px;padding-right:4px;}
+  .tab{padding:4px 5px;font-size:9.5px;gap:3px;}
+  .tab.fab{width:52px;height:52px;}
+}
 .tab .ic{font-size:21px;line-height:1;display:flex;} .tab.on{color:var(--green);} .tab.on .ic .svg-ic{filter:drop-shadow(var(--glow));}
 .tab.fab{position:relative;top:-16px;background:var(--green);color:#021b0f;width:56px;height:56px;border-radius:50%;justify-content:center;box-shadow:var(--glow);}
 .tab.fab .ic{font-size:26px;} .tab.fab .ic .svg-ic{stroke-width:2.4;}
@@ -667,15 +674,15 @@ textarea.al-input{resize:none;font-family:var(--sans);line-height:1.5;}
         <div class="brand" onclick="showView('feed')" title="Retour aux plans"><span class="b-dot"></span>LEBON<span>PLAN</span></div>
         <div class="snav on" data-view="feed" onclick="showView('feed')"><span class="ic" data-ic="spark"></span> Les plans</div>
         <div class="snav" data-view="explore" onclick="showView('explore')"><span class="ic" data-ic="compass"></span> Explorer</div>
-        <div class="snav" data-view="alerts" onclick="showView('alerts')"><span class="ic" data-ic="bell"></span> Alertes <span class="ncount" id="navAlerts">2</span></div>
-        <div class="snav" data-view="favoris" onclick="showView('favoris')"><span class="ic" data-ic="heart"></span> Favoris <span class="ncount" id="navFav" style="background:rgba(0,255,140,.14);color:var(--green)">2</span></div>
+        <div class="snav" data-view="alerts" onclick="showView('alerts')"><span class="ic" data-ic="bell"></span> Alertes <span class="ncount" id="navAlerts">0</span></div>
+        <div class="snav" data-view="favoris" onclick="showView('favoris')"><span class="ic" data-ic="heart"></span> Favoris <span class="ncount" id="navFav" style="background:rgba(0,255,140,.14);color:var(--green)">0</span></div>
         <div class="snav" data-view="profile" onclick="showView('profile')"><span class="ic" data-ic="user"></span> Mon profil</div>
         <div class="snav" onclick="logout()"><span class="ic" data-ic="logout"></span> Se déconnecter</div>
         <button class="btn publish" onclick="openPublish()"><span class="ic" data-ic="plus"></span> Publier un plan</button>
         <div class="spacer"></div>
         <div class="me" onclick="showView('profile')">
-          <div class="av">MX</div>
-          <div class="info"><b>Maxime_Deals</b><small>Niveau 7 · <span class="ic" data-ic="alert"></span> 2/3</small></div>
+          <div class="av">··</div>
+          <div class="info"><b>Membre</b><small>Niveau 7 · <span class="ic" data-ic="alert"></span> 2/3</small></div>
         </div>
       </aside>
 
@@ -685,10 +692,10 @@ textarea.al-input{resize:none;font-family:var(--sans);line-height:1.5;}
             <div class="brand-m" onclick="showView('feed')" title="Retour aux plans"><span class="b-dot"></span>LEBON<span>PLAN</span></div>
             <div class="search"><span class="ic" data-ic="search"></span><input id="feedSearch" placeholder="Rechercher un plan, une marque, une catégorie…" oninput="onFeedSearch(this.value)"></div>
             <div class="top-actions">
-              <div class="avatar" onclick="showView('profile')">MX<div class="badge">2</div></div>
+              <div class="avatar" onclick="showView('profile')">··<div class="badge">2</div></div>
             </div>
             <button class="icon-btn mobile-only" onclick="showView('favoris')" aria-label="Favoris"><span class="ic" data-ic="heart"></span></button>
-            <div class="avatar mobile-only" onclick="showView('profile')">MX<div class="badge">2</div></div>
+            <div class="avatar mobile-only" onclick="showView('profile')">··<div class="badge">2</div></div>
           </div>
           <div class="cats" id="cats">
             <div class="cat on" data-cat="" onclick="setCat(this,'')"><span class="ic" data-ic="spark"></span> Tout</div>
@@ -710,8 +717,8 @@ textarea.al-input{resize:none;font-family:var(--sans);line-height:1.5;}
           <div class="view view-profile">
             <div class="prof">
               <div class="prof-head">
-                <div class="prof-av">MX</div>
-                <h2 class="prof-name">Maxime_Deals</h2>
+                <div class="prof-av">··</div>
+                <h2 class="prof-name">Membre</h2>
                 <p class="prof-handle">@maxdeals · Chasseur de plans, niveau 7</p>
                 <div class="prof-stats">
                   <div class="pstat"><b>128</b><span>Plans</span></div>
@@ -819,6 +826,7 @@ textarea.al-input{resize:none;font-family:var(--sans);line-height:1.5;}
         <div class="tab on" data-view="feed" onclick="showView('feed')"><span class="ic" data-ic="spark"></span>Plans</div>
         <div class="tab" data-view="explore" onclick="showView('explore')"><span class="ic" data-ic="compass"></span>Explorer</div>
         <div class="tab fab" onclick="openPublish()"><span class="ic" data-ic="plus"></span></div>
+        <div class="tab" data-view="favoris" onclick="showView('favoris')"><span class="ic" data-ic="heart"></span>Favoris</div>
         <div class="tab" data-view="alerts" onclick="showView('alerts')"><span class="ic" data-ic="bell"><span class="tcount" id="tabAlerts">0</span></span>Alertes</div>
         <div class="tab" data-view="profile" onclick="showView('profile')"><span class="ic" data-ic="user"></span>Profil</div>
       </div>
@@ -909,7 +917,7 @@ function showView(v){
 }
 
 /* code */
-let code=''; let resetTimer=null, codeSeq=0, checking=false; const DEMO_CODE='1984';
+let code=''; let resetTimer=null, codeSeq=0, checking=false;   /* le code de référence vit dans access_codes, plus dans la page */
 const dots=document.querySelectorAll('#dots .dot'); const hint=document.getElementById('codeHint');
 function renderDots(){ dots.forEach((d,i)=>{d.classList.toggle('on',i<code.length);d.classList.remove('err');}); }
 function clearCodeError(){
@@ -954,10 +962,8 @@ function checkCode(){
     LBP.api.verifyAccessCode(code)
       .then(ok=> ok?proceed():bad())
       .catch(()=> indispo("Connexion impossible. Vérifie ta connexion et réessaie."));
-  } else if(window.LBP&&LBP.initFailed){                                    // CDN injoignable : on n'ouvre pas la porte
+  } else {   /* plus de mode démo : sans Supabase, on n'entre pas */
     indispo("Service momentanément indisponible. Recharge la page.");
-  } else {                                                                  // démo assumée (USE_SUPABASE=false)
-    if(code===DEMO_CODE) proceed(); else bad();
   }
 }
 /* Le code n'est demandé qu'une fois : au rechargement on saute le portail.
@@ -978,8 +984,9 @@ document.addEventListener('DOMContentLoaded',()=>{
   },150);
 });
 function afterUnlock(){
-  if(window.LBP&&LBP.enabled && !LBP._user){ go('s-auth'); }               // pas connecté → écran de connexion
-  else { go('s-app'); showView('feed'); }                                   // démo ou déjà connecté → les plans
+  /* Sans compte, on ne voit pas les plans : il n'existe plus de chemin démo. */
+  if(!(window.LBP&&LBP._user)){ go('s-auth'); }
+  else { go('s-app'); showView('feed'); }
 }
 
 /* ===== AUTHENTIFICATION ===== */
@@ -999,7 +1006,7 @@ function authErr(m){ document.getElementById('authErr').textContent=m||''; }
 function enterApp(){ go('s-app'); showView('feed'); }
 function authTr(e){ const m=(e&&e.message)||''; if(/Invalid login/i.test(m))return 'Email ou mot de passe incorrect.'; if(/already registered|already been/i.test(m))return 'Cet email a déjà un compte.'; if(/confirm/i.test(m))return 'Vérifie ta boîte mail pour confirmer ton compte, puis connecte-toi.'; if(/at least 6/i.test(m))return 'Mot de passe : 6 caractères minimum.'; return m||"Erreur d'authentification."; }
 function authSubmit(){
-  if(!(window.LBP&&LBP.enabled)){ enterApp(); return; }                    // démo : pas d'auth réelle
+  if(!(window.LBP&&LBP.enabled)){ authErr('Service indisponible. Recharge la page.'); return; }
   const email=val('authEmail'), pass=val('authPass'), uname=val('authUser');
   if(!email||!pass){ authErr('Renseigne ton email et ton mot de passe.'); return; }
   authErr(''); const btn=document.getElementById('authBtn'); btn.disabled=true; btn.style.opacity=.6;
@@ -1010,7 +1017,7 @@ function authSubmit(){
   }).catch(e=>authErr(authTr(e))).finally(()=>{ btn.disabled=false; btn.style.opacity=1; });
 }
 function authGuest(){
-  if(!(window.LBP&&LBP.enabled)){ enterApp(); return; }
+  if(!(window.LBP&&LBP.enabled)){ authErr('Service indisponible. Recharge la page.'); return; }
   LBP.api.signInAnonymous().then(async()=>{ await LBP.hydrate(); enterApp(); }).catch(e=>authErr(authTr(e)));
 }
 function logout(){ if(window.LBP&&LBP.enabled){ LBP.api.signOut().then(()=>location.reload()); } else location.reload(); }
@@ -1045,22 +1052,10 @@ function pickIcon(text,cat){
   for(const r of rules){ if(r[0].test(t)) return r[1]; }
   return catIc(cat);
 }
-const DEALS=[
-  {id:1,user:'GlitchHunter',av:'GH',cat:'Failles',icon:'bolt',disc:'−80%',exp:'Corrigé bientôt',title:'Erreur de prix : vol long-courrier à −80 %',now:'149 €',old:'740 €',desc:"Erreur tarifaire repérée sur un comparateur reconnu. À réserver vite, elle sera corrigée.",tags:['Erreur de prix','Comparateur reconnu','Flash'],votes:3120,views:22000,validated:820,verified:true,video:'https://www.youtube.com/watch?v=aqz-KE-bpKQ'},
-  {id:2,user:'CodeMaster',av:'CM',cat:'Codes promo',icon:'mode',disc:'Code',exp:'48 h',title:'Code −30 % dès le premier achat',now:'MEMBRE30',old:'',desc:"Code de bienvenue valable sur tout le site d'une enseigne en ligne, cumulable avec la livraison offerte.",tags:['Code promo','Cumulable','Première commande'],votes:1890,views:9200,validated:240,verified:true},
-  {id:3,user:'EvasionPro',av:'EP',cat:'Voyage',icon:'voyage',disc:'−40%',exp:'Ce week-end',title:'Nuit hôtel 4★ −40 % — plateforme officielle',now:'99 €',old:'165 €',desc:"Offre flash sur une plateforme de réservation reconnue, annulation gratuite incluse.",tags:['Site reconnu','Annulation gratuite','4 étoiles'],votes:1204,views:7400,validated:190,verified:true},
-  {id:4,user:'AideConso',av:'AC',cat:'Officiel',icon:'shield',disc:'−50%',exp:'Ce mois-ci',title:'Aide officielle : abonnement transport −50 % (−26 ans)',now:'−50 %',old:'',desc:"Dispositif officiel : réduction sur les abonnements de transport pour les moins de 26 ans. Lien vers le site officiel.",tags:['Organisme officiel','−26 ans','Officiel'],votes:2100,views:12800,validated:410,verified:true},
-  {id:5,user:'RecoCertif',av:'RC',cat:'Tech',icon:'tech',disc:'−38%',exp:'2 jours',title:'Smartphone reconditionné certifié −38 %',now:'399 €',old:'649 €',desc:"Reconditionné grade A chez un revendeur agréé, garantie 2 ans. Achat 100 % en ligne.",tags:['Reconditionné certifié','Garantie 2 ans','En ligne'],votes:1120,views:5400,validated:180,verified:true},
-  {id:6,user:'CashDeal',av:'CD',cat:'Cashback',icon:'trend',disc:'15 %',exp:'Permanent',title:'Cashback 15 % via plateforme reconnue',now:'15 %',old:'',desc:"Cumule ta remise habituelle avec 15 % de cashback via une plateforme de confiance.",tags:['Cashback','Cumulable','Plateforme reconnue'],votes:756,views:3300,validated:95,verified:false},
-  {id:7,user:'BugFinder',av:'BF',cat:'Failles',icon:'bolt',disc:'Astuce',exp:'Ce mois-ci',title:'Faille : cumul code + parrainage = −45 %',now:'−45 %',old:'',desc:"Combine le code de bienvenue et le parrainage sur un site reconnu pour empiler les remises.",tags:['Cumul de codes','Astuce','Vérifié'],votes:1400,views:8800,validated:260,verified:true},
-  {id:8,user:'VolMalin',av:'VM',cat:'Voyage',icon:'voyage',disc:'−45%',exp:'48 h',title:'Vol A/R Europe dès 29 € — comparateur reconnu',now:'29 €',old:'79 €',desc:"Tarif repéré sur plusieurs dates via un comparateur officiel. À réserver avant correction.",tags:['Comparateur reconnu','Printemps','Flash'],votes:3120,views:15200,validated:520,verified:true},
-  {id:9,user:'PromoRoom',av:'PR',cat:'Codes promo',icon:'mode',disc:'Livr. off.',exp:'Ce dimanche',title:'Code livraison offerte + −15 % cumulables',now:'BIENVENUE15',old:'',desc:"Deux codes valables ensemble sur une boutique en ligne reconnue.",tags:['Livraison offerte','Cumulable','Code promo'],votes:410,views:2400,validated:60,verified:false},
-  {id:10,user:'PrimeInfo',av:'PI',cat:'Officiel',icon:'shield',disc:'Prime',exp:'Cette année',title:'Prime officielle : remboursement 50 % mobilité',now:'−50 %',old:'',desc:"Dispositif d'aide officiel pour la mobilité douce. Démarche 100 % en ligne sur le site officiel.",tags:['Prime officielle','Mobilité','Officiel'],votes:870,views:3300,validated:130,verified:true},
-  {id:11,user:'StreamDeal',av:'SD',cat:'Tech',icon:'tech',disc:'3 mois',exp:'5 jours',title:'Streaming — 3 mois offerts (offre officielle)',now:'0 €',old:'29 €',desc:"Offre de bienvenue officielle sur un service reconnu. Sans engagement.",tags:['Offre officielle','3 mois','Sans engagement'],votes:530,views:4200,validated:140,verified:true},
-  {id:12,user:'BoxRemboo',av:'BR',cat:'Cashback',icon:'trend',disc:'25 €',exp:'Ce mois-ci',title:'Remboursement différé 25 € sur ta box internet',now:'25 €',old:'',desc:"Offre de remboursement officielle d'un opérateur reconnu, à activer en ligne.",tags:['Remboursement','Opérateur reconnu','En ligne'],votes:690,views:2400,validated:55,verified:false},
-  {id:13,user:'StreamMalin',av:'SM',cat:'Alternatives',icon:'layers',disc:'−65%',exp:'En ce moment',title:'Alternative streaming : même concept, 65 % moins cher',now:'3,99 €',old:'11,99 €',desc:"Plateforme indépendante et légale qui reprend le concept des grands services de streaming, bien moins chère. Sans engagement.",tags:['Alternative légale','Même concept','Sans engagement'],votes:1600,views:11200,validated:340,verified:true},
-  {id:14,user:'AltFinder',av:'AF',cat:'Alternatives',icon:'layers',disc:'−70%',exp:'Cette semaine',title:'Alternative au cloud : 2 To à −70 % vs le leader',now:'2,99 €',old:'9,99 €',desc:"Service de stockage cloud reconnu qui offre le même usage que le leader du marché, à prix cassé.",tags:['Même usage','Reconnu','−70%'],votes:720,views:4100,validated:120,verified:true},
-];
+/* Plus de catalogue de démonstration : les plans viennent exclusivement de
+   Supabase (bootstrap.js -> hydrate). Un tableau vide garantit qu aucune
+   donnee fictive ne peut s afficher si la base est vide ou injoignable. */
+let DEALS=[];
 
 /* ===== ÉTAT (le seul endroit à remplacer par Supabase pour l'MVP) =====
    Chaque set/tableau ci-dessous = une table côté serveur. Les fonctions
@@ -1284,15 +1279,18 @@ function submitPublish(){
     toast('warn','Lien vidéo non reconnu','Accepté : YouTube, Vimeo, Dailymotion ou un fichier .mp4. Laisse le champ vide sinon.');
     return;
   }
+  if(!(window.LBP&&LBP.enabled)){ toast('warn','Publication impossible','Service indisponible. Recharge la page.'); return; }
+  const moi=(LBP._user&&LBP._user.user_metadata&&LBP._user.user_metadata.username)
+         || (LBP._user&&LBP._user.email?LBP._user.email.split('@')[0]:'Membre');
   const dom=domainOf(val('pubLink'));
-  const d={id:++dealSeq,user:'Maxime_Deals',av:'MX',cat:pubSelCat,icon:pickIcon(title+' '+val('pubDesc'),pubSelCat),
+  const d={id:++dealSeq,user:moi,av:moi.slice(0,2).toUpperCase(),cat:pubSelCat,icon:pickIcon(title+' '+val('pubDesc'),pubSelCat),
     disc:val('pubDisc')||'Bon plan',exp:"À l'instant",title,now:val('pubNow')||'—',old:val('pubOld')||'',
     desc:val('pubDesc')||'Nouveau plan partagé avec la communauté.',tags:[pubSelCat,'Nouveau'],votes:0,views:0,validated:0,verified:false,
     steps:(val('pubSteps')||'').split('\n').map(s=>s.trim()).filter(Boolean),video:val('pubVideo'),
     link:val('pubLink'),domain:dom,image:dom?faviconUrl(dom):''};   /* MVP : image = og:image récupérée côté serveur depuis le lien */
   DEALS.unshift(d);
-  if(window.LBP&&LBP.enabled) LBP.api.insertDeal(d).then(id=>{                     // → Supabase (id BDD + trigger d'alertes serveur)
-    if(!id){                                                                       // refus serveur : on retire la carte optimiste
+  LBP.api.insertDeal(d).then(id=>{                     // → Supabase (id BDD + trigger d'alertes serveur)
+    if(!id){                                           // refus serveur : on retire la carte optimiste
       const i=DEALS.indexOf(d); if(i>=0) DEALS.splice(i,1);
       toast('warn','Publication refusée','Le serveur a rejeté le plan — compte non vérifié ?');
     }
@@ -1409,7 +1407,6 @@ function playVideo(el,url){
 /* ===== SIGNALEMENT (ban au 3e signalement de membres distincts) ===== */
 let reportCard=null;
 const REPORT_THRESHOLD=3;
-const demoReports={};   /* mode démo : compteur local, faute de serveur */
 function openBan(id,btn){ reportCard=btn?btn.closest('.card'):null; document.getElementById('reportSheet').classList.add('show'); }
 function openBanById(id){ reportCard=document.querySelector('.card[data-id=\"'+id+'\"]'); document.getElementById('reportSheet').classList.add('show'); }
 function closeSheet(){ document.getElementById('reportSheet').classList.remove('show'); }
@@ -1423,8 +1420,8 @@ async function confirmReport(reason){
     if(!res){ toast('warn','Signalement impossible','Réessaie dans un instant.'); return; }
     if(res.error){ toast('warn','Signalement refusé',res.error); return; }
   }else{
-    const k=id||0; demoReports[k]=(demoReports[k]||0)+1;
-    res={reports:demoReports[k],threshold:REPORT_THRESHOLD,banned:demoReports[k]>=REPORT_THRESHOLD};
+    toast('warn','Signalement impossible','Service indisponible. Recharge la page.');
+    return;
   }
   if(!res.banned){
     const n=res.reports,t=res.threshold||REPORT_THRESHOLD;

@@ -52,7 +52,9 @@
         L.api.getNotifications(), L.api.getMyValidations()
       ]);
       var deals = r[0], favs = r[1], als = r[2], notifs = r[3], vals = r[4];
-      if (typeof DEALS !== 'undefined' && deals.length) { DEALS.length = 0; deals.forEach(function (d) { DEALS.push(d); }); }
+      // Remplacement inconditionnel : garder l'ancien contenu quand la base ne
+      // renvoie rien afficherait des plans qui n'existent plus côté serveur.
+      if (typeof DEALS !== 'undefined') { DEALS.length = 0; deals.forEach(function (d) { DEALS.push(d); }); }
       if (typeof favorites !== 'undefined') { favorites.clear(); favs.forEach(function (id) { favorites.add(id); }); }
       if (typeof validatedByUser !== 'undefined') { validatedByUser.clear(); vals.forEach(function (id) { validatedByUser.add(id); }); }
       if (typeof alerts !== 'undefined') { alerts.length = 0; als.forEach(function (a) { alerts.push(a); }); }
