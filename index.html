@@ -784,21 +784,6 @@ textarea.al-input{resize:none;font-family:var(--sans);line-height:1.5;}
   </div>
 
   <!-- PUB À L'OUVERTURE D'UN PLAN -->
-  <div class="sheet-bg" id="preDealAd">
-    <div style="width:100%;max-width:360px;padding:0 18px" onclick="event.stopPropagation()">
-      <div class="ad-card">
-        <div class="ad-tag" style="position:static;padding:12px 16px 0">Publicité · soutient LEBONPLAN</div>
-        <div class="ad-visual" style="height:170px"><div class="shine"></div><div class="bg-ic"><span class="ic" data-ic="shield"></span></div></div>
-        <div class="ad-body">
-          <div class="kicker">Sponsorisé</div>
-          <h3>Un instant pour soutenir le site</h3>
-          <p>Cette courte publicité garde LEBONPLAN 100 % gratuit. Tu accèdes au plan dans <b id="preAdCd">5</b> s.</p>
-          <button class="btn" id="preAdBtn" style="opacity:.4;pointer-events:none" onclick="continuePreDealAd()">Voir le plan</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
   <!-- INTERSTITIEL 2 MIN -->
   <div class="sheet-bg" id="adSheet">
     <div style="width:100%;max-width:360px;padding:0 18px" onclick="event.stopPropagation()">
@@ -882,11 +867,20 @@ function showView(v){
 }
 
 /* code */
-let code=''; const DEMO_CODE='1984';
+let code=''; let resetTimer=null; const DEMO_CODE='1984';
 const dots=document.querySelectorAll('#dots .dot'); const hint=document.getElementById('codeHint');
 function renderDots(){ dots.forEach((d,i)=>{d.classList.toggle('on',i<code.length);d.classList.remove('err');}); }
+function clearCodeError(){
+  code=''; renderDots();
+  document.getElementById('dots').classList.remove('shake');
+  hint.textContent="Code d'accès · 4 chiffres"; hint.classList.remove('bad');
+}
 document.getElementById('keypad').addEventListener('click',e=>{
   const k=e.target.closest('.key'); if(!k)return; const v=k.dataset.k;
+  /* Une saisie erronée programme un effacement 600 ms plus tard. Sans ceci, il
+     tombait au milieu de la re-saisie et mangeait les premiers chiffres : le
+     portail restait bloqué sans rien afficher. On efface tout de suite. */
+  if(resetTimer){ clearTimeout(resetTimer); resetTimer=null; clearCodeError(); }
   if(v==='del'){ code=code.slice(0,-1); renderDots(); return; }
   if(v==='hint'){ hint.textContent="Indice : le roman d'Orwell."; hint.classList.remove('bad'); return; }
   if(code.length>=4) return; code+=v; renderDots();
@@ -895,7 +889,8 @@ document.getElementById('keypad').addEventListener('click',e=>{
 function checkCode(){
   const bad=()=>{ dots.forEach(d=>d.classList.add('err')); document.getElementById('dots').classList.add('shake');
     hint.textContent="Code invalide. Réessaie."; hint.classList.add('bad');
-    setTimeout(()=>{code='';renderDots();document.getElementById('dots').classList.remove('shake');},600); };
+    clearTimeout(resetTimer);
+    resetTimer=setTimeout(()=>{ resetTimer=null; clearCodeError(); },600); };
   const proceed=()=>{
     document.getElementById('burst').classList.add('go');
     setTimeout(()=>{ afterUnlock(); },620);                                 // bascule DERRIÈRE le voile encore opaque
@@ -1265,20 +1260,10 @@ function ytEmbed(url){
   const vm=(url||'').match(/vimeo\.com\/(\d+)/); if(vm) return 'https://player.vimeo.com/video/'+vm[1];
   return '';
 }
-/* Pub à l'ouverture d'un plan (une fois par session), puis la fiche s'ouvre */
-let shownCardAd=false, pendingDealId=null, preAdTimer=null;
-function openDeal(id){
-  if(!shownCardAd){ shownCardAd=true; pendingDealId=id; showPreDealAd(); }
-  else renderDeal(id);
-}
-function showPreDealAd(){
-  document.getElementById('preDealAd').classList.add('show');
-  let t=5; const cd=document.getElementById('preAdCd'), btn=document.getElementById('preAdBtn');
-  cd.textContent=t; btn.style.opacity=.4; btn.style.pointerEvents='none';
-  clearInterval(preAdTimer);
-  preAdTimer=setInterval(()=>{ t--; cd.textContent=Math.max(t,0); if(t<=0){ clearInterval(preAdTimer); btn.style.opacity=1; btn.style.pointerEvents='auto'; } },1000);
-}
-function continuePreDealAd(){ document.getElementById('preDealAd').classList.remove('show'); if(pendingDealId!=null){ renderDeal(pendingDealId); pendingDealId=null; } }
+/* L'interstitiel qui précédait l'ouverture d'un plan a été retiré : il figeait
+   l'écran 5 s dès le tout premier plan cliqué, sans échappatoire. La fiche
+   s'ouvre désormais directement. */
+function openDeal(id){ renderDeal(id); }
 function renderDeal(id){
   const d=DEALS.find(x=>x.id===id); if(!d)return;
   if(window.LBP&&LBP.enabled) LBP.api.incrementViews(id);
