@@ -6,11 +6,14 @@
 <title>LEBONPLAN — Les meilleurs plans du web</title>
 <meta name="description" content="Erreurs de prix, codes promo, aides officielles et alternatives légales moins chères. Les bons plans du web, validés par la communauté.">
 <meta name="theme-color" content="#02100a">
-<!-- Le SVG passe en premier : les navigateurs récents le préfèrent et il reste
-     net à toutes les tailles. Le PNG sert de repli et d'icône iOS. -->
-<link rel="icon" type="image/svg+xml" href="assets/lebonplan-icon.svg?v=2">
-<link rel="icon" type="image/png" sizes="256x256" href="assets/lebonplan-favicon-256.png?v=2">
-<link rel="apple-touch-icon" href="assets/lebonplan-favicon-256.png?v=2">
+<!-- Ordre voulu : .ico d'abord, seul format que tous les navigateurs
+     reconnaissent — Safari ignore les favicons SVG. Puis le PNG, puis le SVG
+     pour les navigateurs récents, qui le préfèrent et le rendent net à toute
+     taille. Le .ico est multi-résolutions, de 16 à 256 px. -->
+<link rel="icon" href="favicon.ico?v=3" sizes="any">
+<link rel="icon" type="image/png" sizes="256x256" href="assets/lebonplan-favicon-256.png?v=3">
+<link rel="icon" type="image/svg+xml" href="assets/lebonplan-icon.svg?v=3">
+<link rel="apple-touch-icon" href="assets/lebonplan-favicon-256.png?v=3">
 <!-- Aperçu au partage. Les robots des réseaux sociaux ne résolvent pas les
      chemins relatifs : ces adresses doivent rester absolues. -->
 <meta property="og:type" content="website">
