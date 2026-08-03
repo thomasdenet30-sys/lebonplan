@@ -1574,7 +1574,7 @@ function stepsFor(d){
    de droit de la catégorie. Aucune fiche ne reste sans visuel.
    Les photos viennent d'Unsplash (licence libre, usage commercial autorisé,
    sans attribution obligatoire) ; les 14 URL ont été vérifiées une à une. */
-const U='https://images.unsplash.com/photo-', Q='?w=900&q=80&auto=format&fit=crop';
+const U='https://images.unsplash.com/photo-', Q='?w=1200&q=85&auto=format&fit=crop';
 const PHOTOS={
   'Voyage':      [U+'1507525428034-b723cf961d3e'+Q, U+'1436491865332-7a61a109cc05'+Q],
   'Codes promo': [U+'1441986300917-64674bd600d8'+Q, U+'1472851294608-062f824d29cc'+Q],
@@ -1582,7 +1582,7 @@ const PHOTOS={
   'Cashback':    [U+'1554224155-6726b3ff858f'+Q,    U+'1526304640581-d334cdbbf45e'+Q],
   'Officiel':    [U+'1497366754035-f200968a6e72'+Q, U+'1450101499163-c8848c66ca85'+Q],
   'Alternatives':[U+'1522869635100-9f4c5e86aa37'+Q, U+'1593784991095-a205069470b6'+Q],
-  'Failles':     [U+'1509023464722-18d996393ca8'+Q, U+'1519389950473-47ba0277781c'+Q],
+  'Failles':     [U+'1607083206869-4c7672e72a8a'+Q, U+'1519389950473-47ba0277781c'+Q],
 };
 /* Vignette déduite de l'identifiant de la vidéo — aucun appel serveur. */
 function vignetteVideo(url){
@@ -1598,7 +1598,7 @@ function vignetteVideo(url){
 /* Bibliothèque par sujet : l'image suit ce que raconte le plan, pas seulement
    sa catégorie. Les 30 URL ont été vérifiées une à une (200 + image/jpeg). */
 const THEMES=[
-  [U+'1544551763-46a013bb70d5'+Q, ['bateau','bateaux','voilier','voiliers','croisiere','croisieres','nautique','yacht','ferry','peniche']],
+  [U+'1520255870062-bd79d3865de7'+Q, ['bateau','bateaux','voilier','voiliers','croisiere','croisieres','nautique','yacht','ferry','peniche']],
   [U+'1436491865332-7a61a109cc05'+Q, ['avion','avions','vol','vols','aerien','aerienne','aeroport','long-courrier','billet']],
   [U+'1566073771259-6a8506099945'+Q, ['hotel','hotels','nuit','nuitee','hebergement','chambre','auberge','resort','sejour']],
   [U+'1474487548417-781cb71495f3'+Q, ['train','trains','tgv','sncf','ferroviaire','rail']],
@@ -1625,11 +1625,11 @@ const THEMES=[
   [U+'1509391366360-2e959784a276'+Q, ['energie','electricite','gaz','solaire','kwh','facture']],
   [U+'1563013544-824ae1b704d3'+Q, ['banque','carte','compte','cashback','remboursement','prime','virement']],
   [U+'1450101499163-c8848c66ca85'+Q, ['assurance','mutuelle','contrat','officiel','aide','dispositif','organisme','administration']],
-  [U+'1512941937669-90a1b58e7e9c'+Q, ['enfant','enfants','bebe','poussette','jouet','jouets','famille']],
+  [U+'1515488042361-ee00e0ddd4e4'+Q, ['enfant','enfants','bebe','poussette','jouet','jouets','famille']],
   [U+'1450778869180-41d0601e046e'+Q, ['animal','animaux','chien','chat','croquettes','veterinaire']],
   [U+'1416879595882-3373a0480b5b'+Q, ['jardin','bricolage','outil','outils','plante','plantes','terrasse']],
-  [U+'1526772662000-3f88f10405ff'+Q, ['montre','montres','bijou','bijoux','accessoire','horlogerie']],
-  [U+'1523275335684-37898b6baf30'+Q, ['objet','gadget','accessoires','high-tech','connecte']],
+  [U+'1524805444758-089113d48a6d'+Q, ['montre','montres','bijou','bijoux','accessoire','horlogerie']],
+  [U+'1550009158-9ebf69173e03'+Q, ['objet','gadget','accessoires','high-tech','connecte']],
 ];
 function sansAccents(s){ return (s||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase(); }
 function illustration(d){
