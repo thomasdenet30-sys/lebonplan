@@ -729,10 +729,10 @@ textarea.al-input{resize:none;font-family:var(--sans);line-height:1.5;}
             <div class="brand-m" onclick="showView('feed')" title="Retour aux plans"><span class="b-dot"></span>LEBON<span>PLAN</span></div>
             <div class="search"><span class="ic" data-ic="search"></span><input id="feedSearch" placeholder="Rechercher un plan, une marque, une catégorie…" oninput="onFeedSearch(this.value)"></div>
             <div class="top-actions">
-              <div class="avatar" onclick="showView('profile')">··<div class="badge">2</div></div>
+              <div class="avatar" onclick="showView('profile')">··<div class="badge notif-badge">0</div></div>
             </div>
             <button class="icon-btn mobile-only" onclick="showView('favoris')" aria-label="Favoris"><span class="ic" data-ic="heart"></span></button>
-            <div class="avatar mobile-only" onclick="showView('profile')">··<div class="badge">2</div></div>
+            <div class="avatar mobile-only" onclick="showView('profile')">··<div class="badge notif-badge">0</div></div>
           </div>
           <div class="cats" id="cats">
             <div class="cat on" data-cat="" onclick="setCat(this,'')"><span class="ic" data-ic="spark"></span> Tout</div>
@@ -1521,7 +1521,10 @@ function deleteAlert(id){ alerts=alerts.filter(x=>x.id!==id); renderAlerts(); if
 function updateCounts(){
   const nf=document.getElementById('navFav'); if(nf) nf.textContent=favorites.size;
   const unread=notifications.filter(n=>!n.read).length;
-  document.querySelectorAll('#navAlerts,#tabAlerts').forEach(na=>{ na.textContent=unread; na.style.display=unread?'':'none'; });
+  /* Les pastilles de l'avatar affichaient un « 2 » écrit en dur dans la
+     maquette : elles suivent maintenant le vrai nombre de non-lues, et
+     disparaissent quand il n'y en a aucune. */
+  document.querySelectorAll('#navAlerts,#tabAlerts,.notif-badge').forEach(na=>{ na.textContent=unread; na.style.display=unread?'':'none'; });
 }
 
 /* signalement */
