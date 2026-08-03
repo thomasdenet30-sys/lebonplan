@@ -79,6 +79,28 @@
       if (out.error) throw out.error;
       L._user = out.data.user; return out.data.user;
     },
+    /* Connexion par Google : aucun e-mail n'est envoyé, et Supabase renseigne
+       lui-même email_confirmed_at puisqu'il fait confiance au fournisseur —
+       le compte est donc « vérifié » au sens de is_verified_user(). */
+    async signInGoogle() {
+      var out = await sb().auth.signInWithOAuth({
+        provider: 'google',
+        options: { redirectTo: location.origin + location.pathname }
+      });
+      if (out.error) throw out.error;
+      return out.data;   // le navigateur part sur Google, la page est quittée
+    },
+    /* Liste des fournisseurs réellement actifs sur le projet, pour n'afficher
+       que des boutons qui fonctionnent. */
+    async providersActifs() {
+      var c = window.LBP_CONFIG || {};
+      try {
+        var r = await fetch(c.SUPABASE_URL + '/auth/v1/settings', { headers: { apikey: c.SUPABASE_ANON_KEY } });
+        if (!r.ok) return {};
+        var d = await r.json();
+        return d.external || {};
+      } catch (e) { console.warn('[LEBONPLAN] providersActifs', e); return {}; }
+    },
     async signOut() { await sb().auth.signOut(); L._user = null; },
 
     /* Compte vérifié = e-mail confirmé. Miroir côté client de
