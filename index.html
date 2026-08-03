@@ -133,7 +133,7 @@ body{font-family:var(--sans);color:var(--ink);overflow:hidden;position:fixed;ins
 html.booting .boot{display:flex;}
 html.booting .screen.active{display:none;}
 .boot-mark{display:flex;align-items:center;font-weight:800;font-size:22px;letter-spacing:.01em;opacity:.92;}
-.boot-mark .b-dot{margin-right:11px;}
+.boot-mark .b-dot{width:26px;height:26px;border-radius:8px;margin-right:11px;}
 .boot-mark span{color:var(--green);}
 .boot-spin{width:34px;height:34px;border-radius:50%;border:2px solid rgba(0,255,140,.18);border-top-color:var(--green);animation:bootspin .8s linear infinite;}
 @keyframes bootspin{to{transform:rotate(360deg);}}
@@ -206,9 +206,13 @@ html.booting .screen.active{display:none;}
 /* gap: espacerait AUSSI « LEBON » et « PLAN », qui sont deux éléments flex
    distincts — d'où le « LEBON PLAN » affiché. La marge ne vise que la pastille. */
 .side .brand{display:flex;align-items:center;gap:0;font-weight:800;font-size:21px;letter-spacing:.01em;padding:4px 10px 24px;cursor:pointer;}
-.side .brand .b-dot{margin-right:11px;}
+.side .brand .b-dot{width:26px;height:26px;border-radius:8px;margin-right:11px;}
 .side .brand span{color:var(--green);}
-.b-dot{width:11px;height:11px;border-radius:50%;background:var(--green);box-shadow:var(--glow);animation:pulse 2.4s infinite;flex:0 0 auto;}
+/* Icône officielle à la place de l'ancienne pastille verte. Le halo pulsant a
+   été retiré : acceptable sur un point, distrayant sur un logo. */
+.b-dot{width:22px;height:22px;flex:0 0 auto;border-radius:7px;
+  background:url("assets/lebonplan-icon.svg") center/contain no-repeat;
+  box-shadow:0 0 14px rgba(0,255,140,.26);}
 @keyframes pulse{50%{transform:scale(.55);opacity:.55}}
 .snav{display:flex;align-items:center;gap:14px;padding:13px 16px;border-radius:13px;color:var(--muted);font-weight:600;font-size:15px;cursor:pointer;transition:.16s;border:1px solid transparent;}
 .snav .ic{font-size:21px;width:24px;display:flex;justify-content:center;}
@@ -227,7 +231,7 @@ html.booting .screen.active{display:none;}
 .topbar{position:sticky;top:0;z-index:30;background:linear-gradient(180deg,var(--bg-2) 74%,transparent);}
 .appbar{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:16px 18px 12px;}
 .brand-m{display:flex;align-items:center;gap:0;font-weight:800;font-size:18px;letter-spacing:.01em;cursor:pointer;}
-.brand-m .b-dot{margin-right:10px;}
+.brand-m .b-dot{width:22px;height:22px;margin-right:10px;}
 .brand-m span{color:var(--green);}
 .search{display:none;flex:1;max-width:520px;align-items:center;gap:11px;background:rgba(0,255,140,.035);border:1px solid var(--line);border-radius:13px;padding:12px 16px;color:var(--muted);}
 .search .svg-ic{font-size:18px;flex:0 0 auto;} .search input{flex:1;background:none;border:none;outline:none;color:var(--ink);font-size:14px;font-family:var(--sans);font-weight:500;}
