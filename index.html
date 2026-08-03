@@ -1148,9 +1148,13 @@ function planBadge(d){
 }
 
 /* ===== FILTRE ===== */
+/* Recherche insensible aux accents : « hotel » ne trouvait pas « hôtel », ce
+   qui est la façon naturelle de taper sur un clavier de téléphone. La
+   description est également fouillée, elle porte souvent le mot cherché. */
 function filterDeals(cat,q){
-  q=(q||'').trim().toLowerCase();
-  return DEALS.filter(d=>(!cat||d.cat===cat) && (!q||(d.title+' '+d.tags.join(' ')+' '+d.cat+' '+d.user).toLowerCase().includes(q)));
+  q=sansAccents((q||'').trim());
+  return DEALS.filter(d=>(!cat||d.cat===cat) &&
+    (!q||sansAccents([d.title,d.desc,d.tags.join(' '),d.cat,d.user].join(' ')).includes(q)));
 }
 function fmtK(n){return (n/1000).toFixed(1).replace('.',',')+'k';}
 /* Aperçu du site à partir du lien collé par le membre.
