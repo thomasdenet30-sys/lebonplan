@@ -1592,11 +1592,59 @@ function vignetteVideo(url){
   if(m) return 'https://www.dailymotion.com/thumbnail/video/'+m[1];
   return '';
 }
+/* Bibliothèque par sujet : l'image suit ce que raconte le plan, pas seulement
+   sa catégorie. Les 30 URL ont été vérifiées une à une (200 + image/jpeg). */
+const THEMES=[
+  [U+'1544551763-46a013bb70d5'+Q, ['bateau','bateaux','voilier','voiliers','croisiere','croisieres','nautique','yacht','ferry','peniche']],
+  [U+'1436491865332-7a61a109cc05'+Q, ['avion','avions','vol','vols','aerien','aerienne','aeroport','long-courrier','billet']],
+  [U+'1566073771259-6a8506099945'+Q, ['hotel','hotels','nuit','nuitee','hebergement','chambre','auberge','resort','sejour']],
+  [U+'1474487548417-781cb71495f3'+Q, ['train','trains','tgv','sncf','ferroviaire','rail']],
+  [U+'1503376780353-7e6692767b70'+Q, ['voiture','voitures','auto','automobile','location','carburant','essence','peage']],
+  [U+'1522869635100-9f4c5e86aa37'+Q, ['streaming','serie','series','film','films','video','svod','chaine','abonnement']],
+  [U+'1511671782779-c97d3d27a1d4'+Q, ['musique','album','concert','spotify','audio','playlist']],
+  [U+'1542751371-adc38448a05e'+Q, ['jeu','jeux','gaming','console','manette','steam','playstation','xbox','nintendo']],
+  [U+'1511707171634-5f897ff02aa9'+Q, ['smartphone','telephone','mobile','iphone','android','forfait','sim']],
+  [U+'1517336714731-489689fd1ca8'+Q, ['ordinateur','pc','laptop','portable','macbook','ecran','clavier']],
+  [U+'1505740420928-5e560c06d30e'+Q, ['casque','ecouteurs','airpods','bluetooth','son']],
+  [U+'1445205170230-053b83016050'+Q, ['mode','vetement','vetements','pull','robe','jean','tshirt','pret-a-porter']],
+  [U+'1560769629-975ec94e6a86'+Q, ['chaussure','chaussures','sneakers','baskets','nike','adidas']],
+  [U+'1596462502278-27bfdc403348'+Q, ['beaute','cosmetique','cosmetiques','parfum','maquillage','soin','creme']],
+  [U+'1542838132-92c53300491e'+Q, ['courses','supermarche','alimentaire','epicerie','panier','drive']],
+  [U+'1517248135467-4c7edcad34c4'+Q, ['restaurant','resto','repas','menu','livraison','pizza','burger']],
+  [U+'1495474472287-4d71bcdd2085'+Q, ['cafe','the','boisson','capsule','expresso']],
+  [U+'1544367567-0f2fcb009e0b'+Q, ['fitness','salle','musculation','abonnement sportif','coach','yoga']],
+  [U+'1502680390469-be75c86b636f'+Q, ['sport','velo','running','ski','randonnee','surf','tennis']],
+  [U+'1481627834876-b7833e8f5570'+Q, ['livre','livres','ebook','lecture','roman','bd']],
+  [U+'1555041469-a586c61ea9bc'+Q, ['meuble','meubles','maison','deco','canape','literie','matelas']],
+  [U+'1556911220-bff31c812dba'+Q, ['electromenager','frigo','lave-linge','aspirateur','four','cuisine']],
+  [U+'1509391366360-2e959784a276'+Q, ['energie','electricite','gaz','solaire','kwh','facture']],
+  [U+'1563013544-824ae1b704d3'+Q, ['banque','carte','compte','cashback','remboursement','prime','virement']],
+  [U+'1450101499163-c8848c66ca85'+Q, ['assurance','mutuelle','contrat','officiel','aide','dispositif','organisme','administration']],
+  [U+'1512941937669-90a1b58e7e9c'+Q, ['enfant','enfants','bebe','poussette','jouet','jouets','famille']],
+  [U+'1450778869180-41d0601e046e'+Q, ['animal','animaux','chien','chat','croquettes','veterinaire']],
+  [U+'1416879595882-3373a0480b5b'+Q, ['jardin','bricolage','outil','outils','plante','plantes','terrasse']],
+  [U+'1526772662000-3f88f10405ff'+Q, ['montre','montres','bijou','bijoux','accessoire','horlogerie']],
+  [U+'1523275335684-37898b6baf30'+Q, ['objet','gadget','accessoires','high-tech','connecte']],
+];
+function sansAccents(s){ return (s||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase(); }
 function illustration(d){
   if(d.image) return d.image;
   const v=vignetteVideo(d.video); if(v) return v;
+  /* On lit le titre, la description et les tags : c'est là que se trouve le
+     sujet réel du plan, la catégorie étant souvent trop large. */
+  const texte=sansAccents([d.title,d.desc,(d.tags||[]).join(' ')].join(' '));
+  let meilleur=null, score=0;
+  for(const [img,mots] of THEMES){
+    let n=0;
+    for(const m of mots){
+      /* Limites de mot strictes : sans elles « vol » attraperait « volume ». */
+      if(new RegExp('(^|[^a-z0-9])'+m.replace(/[-]/g,'\\-')+'($|[^a-z0-9])').test(texte)) n++;
+    }
+    if(n>score){ score=n; meilleur=img; }
+  }
+  if(meilleur) return meilleur;
   const lot=PHOTOS[d.cat]; if(!lot||!lot.length) return '';
-  return lot[Math.abs(d.id||0)%lot.length];      /* stable pour un même plan */
+  return lot[Math.abs(d.id||0)%lot.length];      /* repli : photo de la catégorie */
 }
 /* maxresdefault n'existe pas pour toutes les vidéos YouTube : on retombe sur
    hqdefault, toujours disponible, avant d'abandonner et de rendre le symbole. */
